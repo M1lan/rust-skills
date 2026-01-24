@@ -11,9 +11,25 @@
       "description": "Rust 技能定义文件",
       "path": "skills/"
     },
-    "references": {
-      "description": "参考资料和命令",
-      "path": "references/"
+    "core-concepts": {
+      "description": "核心概念：所有权、生命周期、并发",
+      "path": "references/core-concepts/"
+    },
+    "best-practices": {
+      "description": "最佳实践：API 设计、编码规范、错误处理",
+      "path": "references/best-practices/"
+    },
+    "ecosystem": {
+      "description": "工具生态：Crate 推荐、测试策略",
+      "path": "references/ecosystem/"
+    },
+    "versions": {
+      "description": "版本信息：Rust Edition 特性",
+      "path": "references/versions/"
+    },
+    "commands": {
+      "description": "命令系统：代码审查、安全检查等",
+      "path": "references/commands/"
     },
     "scripts": {
       "description": "脚本工具",

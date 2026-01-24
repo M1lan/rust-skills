@@ -5,7 +5,7 @@ description: "Rust 技能索引。提供所有技能的快速导航和查询入�
 
 # Rust 技能索引
 
-> **当前共 31 个技能**，完整内容请参见根目录 `SKILL.md`
+> **当前共 35 个技能**，完整内容请参见根目录 `SKILL.md`
 
 ---
 
@@ -14,9 +14,9 @@ description: "Rust 技能索引。提供所有技能的快速导航和查询入�
 | 类别 | 技能数量 | 用途 |
 |-----|---------|-----|
 | 核心技能 | 7 | 日常开发必备 |
-| 进阶技能 | 6 | 深入理解 Rust |
+| 进阶技能 | 10 | 深入理解 Rust |
 | 专家技能 | 18 | 疑难杂症专项 |
-| **总计** | **31** | |
+| **总计** | **35** | |
 
 ---
 
@@ -44,6 +44,10 @@ description: "Rust 技能索引。提供所有技能的快速导航和查询入�
 | **rust-web** | `rust-web/SKILL.md` | Web 开发指南 |
 | **rust-learner** | `rust-learner/SKILL.md` | 学习路径与资源 |
 | **rust-ecosystem** | `rust-ecosystem/SKILL.md` | Rust 生态与 crate 选择 |
+| **rust-cache** | `rust-cache/SKILL.md` | Redis 缓存管理 |
+| **rust-auth** | `rust-auth/SKILL.md` | JWT 与 API Key 认证 |
+| **rust-middleware** | `rust-middleware/SKILL.md` | 中间件模式 |
+| **rust-xacml** | `rust-xacml/SKILL.md` | 策略引擎与 RBAC |
 
 ---
 
@@ -82,11 +86,12 @@ description: "Rust 技能索引。提供所有技能的快速导航和查询入�
 
 ```
 系统编程：rust-unsafe, rust-ffi, rust-embedded, rust-ebpf, rust-gpu
-Web 开发：rust-web, rust-async, rust-ecosystem
+Web 开发：rust-web, rust-async, rust-middleware, rust-auth, rust-xacml
 并发编程：rust-concurrency, rust-async, rust-coroutine
 性能优化：rust-performance, rust-embedded
 类型系统：rust-ownership, rust-pin, rust-macro, rust-const, rust-lifetime-complex
 错误处理：rust-error, rust-error-advanced
+基础设施：rust-cache, rust-auth, rust-middleware, rust-xacml
 ```
 
 ---
@@ -112,4 +117,7 @@ Web 开发：rust-web, rust-async, rust-ecosystem
 | 线性类型语义 | rust-linear-type |
 | crate 选择 | rust-ecosystem |
 | 代码风格 | rust-coding |
-
+| 缓存策略 | rust-cache |
+| 认证授权 | rust-auth |
+| Web 中间件 | rust-middleware |
+| 策略引擎 | rust-xacml |

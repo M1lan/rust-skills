@@ -1,6 +1,6 @@
 # Rust Skill - Rust 专家技能系统
 
-> 基于 Cursor Agent 的 Rust 编程专家技能系统，包含 **31 个子技能**，覆盖 Rust 从入门到专家的全部领域。
+> 基于 Cursor Agent 的 Rust 编程专家技能系统，包含 **35 个子技能**，覆盖 Rust 从入门到专家的全部领域。
 
 ---
 
@@ -30,7 +30,7 @@ Rust Skill 是一个专为 Rust 编程设计的 AI 助手技能系统，提供�
 ┌─────────┐         ┌─────────┐         ┌─────────┐
 │  Core   │         │Advanced │         │ Expert  │
 │  核心   │         │ 进阶    │         │ 专家    │
-│  7 个   │         │  6 个   │         │ 18 个   │
+│  7 个   │         │  10 个  │         │ 18 个   │
 └─────────┘         └─────────┘         └─────────┘
 ```
 
@@ -60,6 +60,10 @@ Rust Skill 是一个专为 Rust 编程设计的 AI 助手技能系统，提供�
 | **rust-web** | Web 开发 | web, axum, HTTP, API |
 | **rust-learner** | 学习与生态追踪 | version, new feature |
 | **rust-ecosystem** | crate 选择 | crate, library, framework |
+| **rust-cache** | Redis 缓存 | cache, redis, TTL |
+| **rust-auth** | JWT 与 API Key 认证 | auth, jwt, token, api-key |
+| **rust-middleware** | 中间件模式 | middleware, cors, rate-limit |
+| **rust-xacml** | 策略引擎 | xacml, policy, rbac, permission |
 
 ### Expert Skills（专家技能 - 疑难杂症）
 
@@ -125,6 +129,14 @@ Rust Skill 是一个专为 Rust 编程设计的 AI 助手技能系统，提供�
 | 过程宏 | `rust-macro` |
 | Const generics | `rust-const` |
 
+### 基础设施
+
+| 问题类型 | 推荐技能 |
+|:---------|:---------|
+| 缓存策略 | `rust-cache` |
+| 认证授权 | `rust-auth`, `rust-xacml` |
+| Web 中间件 | `rust-middleware`, `rust-web` |
+
 ### 系统编程
 
 | 问题类型 | 推荐技能 |
@@ -155,20 +167,24 @@ rust-skill (主入口)
     │         └─► rust-unsafe ──────┘                     │
     │                   │                                  │
     │                   └─► rust-ffi ─────────────────────► rust-ebpf
-    │                             │
-    │                             └─► rust-gpu
+    │                             │                         │
+    │                             └────────────────────────► rust-gpu
     │
     ├─► rust-error ──► rust-error-advanced ──► rust-anti-pattern
     │
     ├─► rust-coding ──► rust-performance
     │
-    ├─► rust-learner ──► rust-web / rust-ecosystem / rust-embedded
-    │         │
-    │         └─► rust-pin / rust-macro / rust-const
-    │                   │
-    │                   └─► rust-lifetime-complex / rust-async-pattern
-    │                             │
-    │                             └─► rust-coroutine
+    ├─► rust-web ──► rust-middleware ──► rust-auth ──► rust-xacml
+    │                              │
+    │                              └─► rust-cache
+    │
+    └─► rust-learner ──► rust-ecosystem / rust-embedded
+              │
+              └─► rust-pin / rust-macro / rust-const
+                        │
+                        └─► rust-lifetime-complex / rust-async-pattern
+                                  │
+                                  └─► rust-coroutine
 ```
 
 ---
@@ -278,18 +294,32 @@ rust-skill/
 │   ├── rust-linear-type/       # 线性类型
 │   ├── rust-coroutine/         # 协程
 │   ├── rust-ebpf/              # eBPF
-│   └── rust-gpu/               # GPU 计算
+│   ├── rust-gpu/               # GPU 计算
+│   ├── rust-cache/             # 缓存管理
+│   ├── rust-auth/              # 认证授权
+│   ├── rust-middleware/        # 中间件
+│   └── rust-xacml/             # 策略引擎
 └── references/                 # 参考资料
-    ├── api-design.md           # API 设计指南
-    ├── best-practices.md       # 最佳实践
-    ├── concurrency.md          # 并发编程
-    ├── crates.md               # 推荐 crate
-    ├── error-handling.md       # 错误处理
-    ├── lifetimes.md            # 生命周期
-    ├── modern-crates.md        # 现代 crate 推荐
-    ├── ownership.md            # 所有权
-    ├── rust-editions.md        # Rust 版本
-    └── testing.md              # 测试策略
+    ├── core-concepts/          # 核心概念
+    │   ├── ownership.md         # 所有权
+    │   ├── lifetimes.md         # 生命周期
+    │   └── concurrency.md       # 并发
+    ├── best-practices/         # 最佳实践
+    │   ├── api-design.md        # API 设计
+    │   ├── best-practices.md    # 最佳实践
+    │   ├── error-handling.md    # 错误处理
+    │   ├── unsafe-rules.md      # Unsafe 规则（47条）
+    │   └── coding-standards.md  # 编码规范（80条）
+    ├── ecosystem/              # 生态
+    │   ├── crates.md            # 推荐 crate
+    │   ├── modern-crates.md     # 现代 crate
+    │   └── testing.md           # 测试
+    ├── versions/               # 版本
+    │   └── rust-editions.md     # Rust 版本
+    └── commands/               # 命令
+        ├── rust-review.md       # 代码审查
+        ├── unsafe-check.md      # Unsafe 检查
+        └── skill-index.md       # 技能索引
 ```
 
 ---

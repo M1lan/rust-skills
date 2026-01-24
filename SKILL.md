@@ -155,20 +155,34 @@ Check code formatting.
 
 ## references
 
-- references/rust-editions.md - Rust 2021/2024 edition features
-- references/error-handling.md - Error handling patterns
-- references/ownership.md - Ownership and borrowing deep dive
-- references/lifetimes.md - Lifetime annotations guide
-- references/concurrency.md - Concurrency patterns
-- references/testing.md - Testing strategies
-- references/best-practices.md - General best practices
-- references/crates.md - Recommended crates
-- references/modern-crates.md - Modern crates (2024-2025)
-- references/api-design.md - API design guidelines
+### Core Concepts
+- references/core-concepts/ownership.md - Ownership and borrowing
+- references/core-concepts/lifetimes.md - Lifetime annotations
+- references/core-concepts/concurrency.md - Concurrency patterns
+
+### Best Practices
+- references/best-practices/best-practices.md - General best practices
+- references/best-practices/api-design.md - API design guidelines
+- references/best-practices/error-handling.md - Error handling
+- references/best-practices/unsafe-rules.md - Unsafe code rules (47 items)
+- references/best-practices/coding-standards.md - Coding standards (80 items)
+
+### Ecosystem
+- references/ecosystem/crates.md - Recommended crates
+- references/ecosystem/modern-crates.md - Modern crates (2024-2025)
+- references/ecosystem/testing.md - Testing strategies
+
+### Versions
+- references/versions/rust-editions.md - Rust 2021/2024 edition features
+
+### Commands
+- references/commands/rust-review.md - Code review command
+- references/commands/unsafe-check.md - Unsafe check command
+- references/commands/skill-index.md - Skill index command
 
 ---
 
-## Sub-Skills (31 Skills Available)
+## Sub-Skills (35 Skills Available)
 
 This skill includes 31 sub-skills for different Rust domains. Use specific triggers to invoke specialized knowledge.
 
@@ -194,6 +208,10 @@ This skill includes 31 sub-skills for different Rust domains. Use specific trigg
 | **rust-web** | Web development | web, axum, HTTP, API |
 | **rust-learner** | Learning & ecosystem | version, new feature |
 | **rust-ecosystem** | Crate selection | crate, library, framework |
+| **rust-cache** | Redis caching | cache, redis, TTL |
+| **rust-auth** | JWT & API Key auth | auth, jwt, token, api-key |
+| **rust-middleware** | Middleware patterns | middleware, cors, rate-limit |
+| **rust-xacml** | Policy engine | xacml, policy, rbac, permission |
 
 ### Expert Skills (Specialized)
 
@@ -229,6 +247,9 @@ This skill includes 31 sub-skills for different Rust domains. Use specific trigg
 | GPU computing | rust-gpu |
 | Advanced type system | rust-lifetime-complex, rust-macro, rust-const |
 | Coding standards | rust-coding |
+| Caching strategies | rust-cache |
+| Authentication/Authorization | rust-auth, rust-xacml |
+| Web middleware | rust-middleware, rust-web |
 
 ### Skill Collaboration
 
@@ -247,11 +268,15 @@ rust-skill (main entry)
     │
     ├─► rust-coding ──► rust-performance
     │
-    └─► rust-learner ──► rust-web / rust-ecosystem / rust-embedded
+    ├─► rust-web ──► rust-middleware ──► rust-auth ──► rust-xacml
+    │                              │
+    └─► rust-learner ──► rust-ecosystem / rust-embedded
               │
               └─► rust-pin / rust-macro / rust-const
                         │
                         └─► rust-lifetime-complex / rust-async-pattern
                                   │
                                   └─► rust-coroutine
+                                        │
+                                        └─► rust-cache
 ```
