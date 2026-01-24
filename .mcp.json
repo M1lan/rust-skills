@@ -1,0 +1,65 @@
+{
+  "description": "Rust Skill MCP 配置 - 提供 Rust 编程专家技能系统",
+  "mcpServers": {
+    "rust-skill": {
+      "command": "builtin",
+      "description": "Rust Skill 系统内置命令解析"
+    }
+  },
+  "resources": {
+    "skills": {
+      "description": "Rust 技能定义文件",
+      "path": "skills/"
+    },
+    "references": {
+      "description": "参考资料和命令",
+      "path": "references/"
+    },
+    "scripts": {
+      "description": "脚本工具",
+      "path": "scripts/"
+    }
+  },
+  "tools": {
+    "rust-review": {
+      "description": "代码质量审查",
+      "command": "/rust-review",
+      "parameters": {}
+    },
+    "unsafe-check": {
+      "description": "Unsafe 代码安全检查",
+      "command": "/unsafe-check",
+      "parameters": {}
+    },
+    "skill-index": {
+      "description": "查询所有可用技能",
+      "command": "/skill-index",
+      "parameters": {}
+    },
+    "rust-features": {
+      "description": "查询 Rust 特性",
+      "command": "/rust-features",
+      "parameters": {}
+    },
+    "crate-info": {
+      "description": "获取 Crate 信息",
+      "command": "/crate-info",
+      "parameters": {}
+    },
+    "guideline": {
+      "description": "编码规范查询",
+      "command": "/guideline",
+      "parameters": {}
+    },
+    "audit": {
+      "description": "安全审计",
+      "command": "/audit",
+      "parameters": {}
+    },
+    "docs": {
+      "description": "文档查询",
+      "command": "/docs",
+      "parameters": {}
+    }
+  }
+}
