@@ -1,13 +1,13 @@
-# Testing Strategies in Rust
+# Rust 测试策略
 
-Comprehensive testing ensures code correctness and prevents regressions.
+全面的测试确保代码正确性并防止回归。
 
-## Test Organization
+## 测试组织
 
-### Unit Tests
+### 单元测试
 
 ```rust
-// In the same file as the code
+// 与代码在同一文件中
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -29,12 +29,12 @@ mod tests {
     #[test]
     #[should_panic(expected = "value must be positive")]
     fn test_add_panics_for_invalid_input() {
-        // Test for panic
+        // 测试 panic 情况
     }
 }
 ```
 
-### Integration Tests
+### 集成测试
 
 ```rust
 // tests/integration_test.rs
@@ -47,12 +47,12 @@ fn test_integration() {
 }
 ```
 
-### Doc Tests
+### 文档测试
 
 ```rust
-/// Adds two numbers together.
+/// 将两个数字相加。
 ///
-/// # Examples
+/// # 示例
 ///
 /// ```
 /// use my_crate::add;
@@ -63,21 +63,21 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 ```
 
-## Test Assertions
+## 测试断言
 
-### Basic Assertions
+### 基础断言
 
 ```rust
 #[test]
 fn test_assertions() {
     assert!(condition);
-    assert!(!condition, "Optional message");
+    assert!(!condition, "可选消息");
     assert_eq!(left, right);
     assert_ne!(left, right);
 }
 ```
 
-### Floating Point Tests
+### 浮点数测试
 
 ```rust
 #[test]
@@ -87,14 +87,14 @@ fn test_floating_point() {
 }
 ```
 
-### Custom Assertions
+### 自定义断言
 
 ```rust
 #[track_caller]
 fn assert_within_range(value: i32, min: i32, max: i32) {
     assert!(
         value >= min && value <= max,
-        "Value {} not in range [{}, {}]",
+        "值 {} 不在范围 [{}, {}] 内",
         value,
         min,
         max
@@ -102,12 +102,12 @@ fn assert_within_range(value: i32, min: i32, max: i32) {
 }
 ```
 
-## Testing Errors
+## 测试错误处理
 
 ```rust
 fn divide(a: i32, b: i32) -> Result<f64, &'static str> {
     if b == 0 {
-        Err("Cannot divide by zero")
+        Err("不能除以零")
     } else {
         Ok(a as f64 / b as f64)
     }
@@ -121,7 +121,7 @@ mod error_tests {
     fn test_divide_by_zero() {
         let result = divide(10, 0);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Cannot divide by zero");
+        assert_eq!(result.unwrap_err(), "不能除以零");
     }
     
     #[test]
@@ -133,7 +133,7 @@ mod error_tests {
 }
 ```
 
-## Testing Private Functions
+## 测试私有函数
 
 ```rust
 // lib.rs
@@ -153,7 +153,7 @@ mod tests {
 }
 ```
 
-## Property-Based Testing
+## 属性测试
 
 ```rust
 use proptest::prelude::*;
@@ -173,10 +173,10 @@ proptest! {
 }
 ```
 
-## Mocking
+## Mock 测试
 
 ```rust
-// Using mockall
+// 使用 mockall
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -196,7 +196,7 @@ mod tests {
 }
 ```
 
-## Benchmark Tests
+## 基准测试
 
 ```rust
 #![feature(test)]
@@ -212,32 +212,32 @@ fn bench_addition(b: &mut Bencher) {
 }
 ```
 
-## Running Tests
+## 运行测试
 
 ```bash
-# Run all tests
+# 运行所有测试
 cargo test
 
-# Run specific test
+# 运行特定测试
 cargo test test_name
 
-# Run tests in specific module
+# 运行特定模块的测试
 cargo test module_name
 
-# Run doc tests
+# 运行文档测试
 cargo test --doc
 
-# Run tests with output
+# 运行测试并显示输出
 cargo test -- --nocapture
 
-# Run tests in release mode
+# 在 release 模式下运行测试
 cargo test --release
 
-# Run tests with coverage
+# 运行测试并生成覆盖率报告
 cargo tarpaulin
 ```
 
-## Test Organization Best Practices
+## 测试组织最佳实践
 
 ```
 src/
@@ -258,7 +258,7 @@ benches/
 Cargo.toml
 ```
 
-## Continuous Integration
+## 持续集成
 
 ```yaml
 # .github/workflows/rust.yml
@@ -271,26 +271,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run tests
+      - name: 运行测试
         run: cargo test --all-features
-      - name: Run clippy
+      - name: 运行 clippy
         run: cargo clippy --all-targets -- -D warnings
-      - name: Check formatting
+      - name: 检查格式化
         run: cargo fmt --check
 ```
 
-## Summary
+## 总结
 
-| Test Type | Purpose | Location |
-|-----------|---------|----------|
-| Unit | Test individual functions | In-source `#[cfg(test)]` |
-| Integration | Test module interactions | `tests/` directory |
-| Doc | Verify documentation examples | In doc comments |
-| Property | Test properties across inputs | `proptest!` macro |
-| Benchmark | Measure performance | `benches/` directory |
-## Modern Testing Tools
+| 测试类型 | 用途 | 位置 |
+|---------|------|------|
+| 单元测试 | 测试单个函数 | 源码中的 `#[cfg(test)]` |
+| 集成测试 | 测试模块交互 | `tests/` 目录 |
+| 文档测试 | 验证文档示例 | 文档注释中 |
+| 属性测试 | 跨输入测试属性 | `proptest!` 宏 |
+| 基准测试 | 测量性能 | `benches/` 目录 |
 
-### rstest - Fixture-based testing
+## 现代测试工具
+
+### rstest - 基于夹具的测试
 
 ```rust
 use rstest::*;
@@ -303,7 +304,7 @@ fn fibonacci_input() -> u32 {
 #[rstest]
 fn test_fibonacci[
     fibonacci_input,
-    // Parameters from fixture
+    // 来自夹具的参数
     case(0, 0),
     case(1, 1),
     case(2, 1),
@@ -320,7 +321,7 @@ fn test_fibonacci[
 }
 ```
 
-### proptest - Property-based testing
+### proptest - 属性测试
 
 ```rust
 use proptest::prelude::*;
@@ -331,10 +332,10 @@ proptest! {
         let mut sorted = vec.clone();
         sorted.sort();
         
-        // Check it's sorted
+        // 检查已排序
         assert!(sorted.windows(2).all(|w| w[0] <= w[1]));
         
-        // Check it has same elements
+        // 检查元素相同
         assert_eq!(sorted.len(), vec.len());
         let mut sorted_copy = sorted;
         sorted_copy.sort();
@@ -348,7 +349,7 @@ proptest! {
 }
 ```
 
-### quickcheck - Quick property testing
+### quickcheck - 快速属性测试
 
 ```rust
 use quickcheck::{QuickCheck, TestResult};
@@ -366,7 +367,7 @@ fn test_quickcheck() {
 }
 ```
 
-### mockall - Mocking
+### mockall - Mock 框架
 
 ```rust
 use mockall::{mock, predicate::*};
@@ -394,7 +395,7 @@ fn test_with_mock() {
 }
 ```
 
-### tempfile - Temporary test data
+### tempfile - 临时测试数据
 
 ```rust
 use tempfile::TempDir;
@@ -409,11 +410,11 @@ fn test_with_temp_file() {
     let content = std::fs::read_to_string(&file_path).unwrap();
     assert_eq!(content, "test data");
     
-    // Automatically cleaned up when temp_dir goes out of scope
+    // 当 temp_dir 离开作用域时自动清理
 }
 ```
 
-### assert_fs - Filesystem testing
+### assert_fs - 文件系统测试
 
 ```rust
 use assert_fs::prelude::*;
@@ -433,9 +434,7 @@ fn test_config_file() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
----
-
-## Test Organization Best Practices
+## 测试组织最佳实践
 
 ```
 src/
@@ -444,7 +443,7 @@ src/
 └── ...
     ├── module_a.rs
     └── module_a/
-        └── tests.rs  // Integration tests for module_a
+        └── tests.rs  // module_a 的集成测试
 
 tests/
 ├── integration_a.rs

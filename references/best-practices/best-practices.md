@@ -26,12 +26,12 @@ src/
 ├── main.rs         # Binary entry point
 ├── config.rs       # Configuration
 ├── api/
-│   ├── mod.rs
-│   ├── client.rs
-│   └── server.rs
+�?  ├── mod.rs
+�?  ├── client.rs
+�?  └── server.rs
 ├── models/
-│   ├── mod.rs
-│   └── user.rs
+�?  ├── mod.rs
+�?  └── user.rs
 └── utils/
     ├── mod.rs
     └── helpers.rs
@@ -45,7 +45,7 @@ src/
 |------|------------|---------|
 | Variables | snake_case | `let max_value` |
 | Functions | snake_case | `fn calculate_total()` |
-| Constants | SCREAMING_SCREAMING_SNAKE_CASE | `const MAX_CONNECTIONS` |
+| Constants | SCREAMING_SNAKE_CASE | `const MAX_CONNECTIONS` |
 | Types | PascalCase | `struct UserProfile` |
 | Traits | PascalCase | `trait Serialize` |
 | Enums | PascalCase | `enum EventType` |
@@ -54,12 +54,12 @@ src/
 ### Boolean Names
 
 ```rust
-// ✅ Good
+// �?Good
 let is_valid = true;
 let has_error = false;
 let can_connect = true;
 
-// ❌ Bad
+// �?Bad
 let valid = true;
 let error = false;
 let connect = true;
@@ -74,7 +74,7 @@ pub struct User {
 }
 
 impl User {
-    // ✅ Good: Don't prefix with get_
+    // �?Good: Don't prefix with get_
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -90,13 +90,13 @@ impl User {
 ### Use Result for Recoverable Errors
 
 ```rust
-// ✅ Good
+// �?Good
 fn parse_config(path: &Path) -> Result<Config, ConfigError> {
     let content = std::fs::read_to_string(path)?;
     serde_json::from_str(&content)?
 }
 
-// ❌ Bad: Panics for expected errors
+// �?Bad: Panics for expected errors
 fn parse_config(path: &Path) -> Config {
     std::fs::read_to_string(path)
         .expect("Failed to read config")
@@ -124,12 +124,12 @@ fn load_user(id: u32) -> Result<User> {
 ### Prefer Borrowing Over Copying
 
 ```rust
-// ✅ Good
+// �?Good
 fn process_name(name: &str) {
     println!("{}", name);
 }
 
-// ❌ Bad: Unnecessary clone
+// �?Bad: Unnecessary clone
 fn process_name(name: &String) {
     let name = name.clone();  // Wasteful
     println!("{}", name);
@@ -157,7 +157,7 @@ let cell = RefCell::new(value);
 ### Stack vs Heap
 
 ```rust
-// ✅ Prefer stack for small, fixed-size data
+// �?Prefer stack for small, fixed-size data
 fn process_point(p: Point) { ... }  // Copy type
 
 // Use heap for large data
@@ -170,10 +170,10 @@ fn process_dynamic_data(data: Vec<u8>) { ... }
 ### Avoid Unnecessary Allocations
 
 ```rust
-// ❌ Bad: Multiple allocations
+// �?Bad: Multiple allocations
 let result = format!("{}-{}-{}", a, b, c);
 
-// ✅ Good: Pre-allocate
+// �?Good: Pre-allocate
 let mut result = String::with_capacity(50);
 result.push_str(&a);
 result.push('-');
@@ -325,4 +325,5 @@ jobs:
 - [ ] Keep functions small and focused
 - [ ] Use meaningful names
 - [ ] Follow naming conventions
+
 

@@ -1,61 +1,69 @@
-# Ownership and Borrowing in Rust
+# 所有权与借用（Ownership and Borrowing）
 
-Ownership is Rust's core mechanism for memory safety without garbage collection.
+所有权是 Rust 最核心的内存安全机制，它让 Rust 能够在不依赖垃圾回收的情况下保证内存安全。
 
-## Core Rules
+## 核心规则
 
-1. **Each value has a single owner** at any time
-2. **When owner goes out of scope, value is dropped**
-3. **Only one mutable reference OR any number of immutable references**
+1. **每个值只有一个所有者**（Each value has a single owner）
+2. **当所有者离开作用域时，值会被释放**（When owner goes out of scope, value is dropped）
+3. **要么一个可变引用，要么任意数量不可变引用**（Only one mutable reference OR any number of immutable references）
 
-## Ownership Transfer (Move)
+## 所有权转移（Move）
+
+### 什么是移动？
+
+当一个值被赋值给另一个变量时，所有权会转移，原变量不再有效。
 
 ```rust
 fn main() {
     let s1 = String::from("hello");
-    let s2 = s1;  // s1 is moved to s2
-    
-    // println!("{}", s1);  // ❌ Error! s1 is no longer valid
+    let s2 = s1;  // s1 的所有权转移给 s2
+
+    // println!("{}", s1);  // ❌ 编译错误！s1 不再有效
     println!("{}", s2);  // ✅ OK
 }
 ```
 
-### When Move Happens
+### 移动发生的场景
 
-- Assigning values
-- Passing to functions
-- Returning from functions
+- 赋值操作：`let s2 = s1`
+- 函数传参：`takes_ownership(s1)`
+- 函数返回值：`return s1`
 
 ```rust
 fn takes_ownership(s: String) {
     println!("{}", s);
-}  // s is dropped here
+}  // s 在这里被释放
 
 fn main() {
     let s = String::from("hello");
-    takes_ownership(s);  // s is moved into the function
-    // println!("{}", s);  // ❌ Error! s is no longer valid
+    takes_ownership(s);  // s 的所有权转移给函数
+    // println!("{}", s);  // ❌ 错误！s 不再有效
 }
 ```
 
-## Borrowing
+## 借用（Borrowing）
 
-### Immutable References
+### 不可变引用
+
+使用 `&` 创建不可变引用，可以有多个。
 
 ```rust
 fn calculate_length(s: &String) -> usize {
     s.len()
-}  // s goes out of scope, but doesn't drop the value
+}  // s 离开作用域，但不会释放它指向的值
 
 fn main() {
     let s = String::from("hello");
-    let len = calculate_length(&s);  // Immutable reference
+    let len = calculate_length(&s);  // 不可变引用
     println!("Length: {}", len);
-    println!("{}", s);  // ✅ Still valid
+    println!("{}", s);  // ✅ s 仍然有效
 }
 ```
 
-### Mutable References
+### 可变引用
+
+使用 `&mut` 创建可变引用，同时只能有一个。
 
 ```rust
 fn change(s: &mut String) {
@@ -64,28 +72,28 @@ fn change(s: &mut String) {
 
 fn main() {
     let mut s = String::from("hello");
-    change(&mut s);  // Mutable reference
+    change(&mut s);  // 可变引用
     println!("{}", s);  // ✅ "hello, world"
 }
 ```
 
-### Mutable Reference Rules
+### 可变引用规则
 
 ```rust
 fn main() {
     let mut s = String::from("hello");
-    
-    let r1 = &mut s;  // ✅ First mutable reference
-    // let r2 = &mut s;  // ❌ Error! Can't have two mutable refs
-    // let r3 = &s;      // ❌ Error! Can't have immutable while mutable
-    
+
+    let r1 = &mut s;  // ✅ 第一个可变引用
+    // let r2 = &mut s;  // ❌ 错误！不能同时有两个可变引用
+    // let r3 = &s;      // ❌ 错误！不可变引用和可变引用不能同时存在
+
     println!("{}", r1);
 }
 ```
 
-## The Slice Type
+## 切片类型（Slice Type）
 
-### String Slices
+### 字符串切片
 
 ```rust
 fn first_word(s: &String) -> &str {
@@ -97,198 +105,70 @@ fn first_word(s: &String) -> &str {
     }
     &s[..]
 }
-
-fn main() {
-    let s = String::from("hello world");
-    let word = first_word(&s);
-    println!("First word: {}", word);
-}
 ```
 
-### Array Slices
+## 生命周期（Lifetime）
+
+### 为什么需要生命周期？
+
+Rust 需要知道引用存活的时间，以确保引用不会指向已释放的内存。
+
+### 生命周期注解
 
 ```rust
-fn sum_slice(slice: &[i32]) -> i32 {
-    slice.iter().sum()
-}
-
-fn main() {
-    let arr = [1, 2, 3, 4, 5];
-    let sum = sum_slice(&arr[1..4]);  // Sum [2, 3, 4]
-    println!("Sum: {}", sum);
-}
-```
-
-## Lifetime Elision
-
-Rust has lifetime elision rules that make common patterns ergonomic.
-
-### Elided Lifetimes
-
-```rust
-// These are equivalent:
-fn first(s: &str) -> &str { &s[0..1] }
-fn first_explicit<'a>(s: &'a str) -> &'a str { &s[0..1] }
-```
-
-### Lifetime Annotations
-
-```rust
+// 'a 表示返回值的生命周期与两个输入参数中较短的那个相同
 fn longest<'a>(s1: &'a str, s2: &'a str) -> &'a str {
-    if s1.len() > s2.len() { s1 } else { s2 }
-}
-
-fn main() {
-    let s1 = String::from("hello");
-    let s2 = String::from("world");
-    let result = longest(&s1, &s2);
-    println!("Longest: {}", result);
-}
-```
-
-## Structs with References
-
-```rust
-struct User<'a> {
-    name: &'a str,
-    email: &'a str,
-}
-
-impl<'a> User<'a> {
-    fn new(name: &'a str, email: &'a str) -> Self {
-        User { name, email }
-    }
-}
-
-fn main() {
-    let name = String::from("Alice");
-    let email = String::from("alice@example.com");
-    
-    let user = User::new(&name, &email);
-    println!("User: {} <{}>", user.name, user.email);
-}
-```
-
-## Interior Mutability
-
-Use `RefCell` or `Cell` when you need mutability through immutable references.
-
-```rust
-use std::cell::RefCell;
-
-struct Config {
-    values: RefCell<Vec<u32>>,
-}
-
-impl Config {
-    fn add_value(&self, value: u32) {
-        let mut values = self.values.borrow_mut();
-        values.push(value);
-    }
-    
-    fn get_values(&self) -> Vec<u32> {
-        self.values.borrow().clone()
+    if s1.len() > s2.len() {
+        s1
+    } else {
+        s2
     }
 }
 ```
 
-## Smart Pointers
-
-### Box<T> - Heap Allocation
+### 结构体中的生命周期
 
 ```rust
-fn main() {
-    let b = Box::new(42);
-    println!("{}", b);  // Dereferences automatically
+struct ImportantExcerpt<'a> {
+    part: &'a str,
 }
-```
-
-### Rc<T> - Reference Counting
-
-```rust
-use std::rc::Rc;
 
 fn main() {
-    let a = Rc::new(String::from("hello"));
-    println!("Count: {}", Rc::strong_count(&a));  // 1
-    
-    {
-        let b = Rc::clone(&a);
-        println!("Count: {}", Rc::strong_count(&a));  // 2
-        println!("{}", b);
-    }
-    
-    println!("Count: {}", Rc::strong_count(&a));  // 1
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().unwrap();
+
+    let excerpt = ImportantExcerpt {
+        part: first_sentence,
+    };
+
+    println!("Excerpt: {}", excerpt.part);
 }
 ```
 
-### Arc<T> - Atomic Reference Counting
+## 智能指针选择
 
-```rust
-use std::sync::Arc;
+| 场景 | 选择 | 原因 |
+|-----|------|------|
+| 堆分配单个值 | `Box<T>` | 简单直接 |
+| 单线程共享引用计数 | `Rc<T>` | 轻量级 |
+| 多线程共享引用计数 | `Arc<T>` | 原子操作 |
+| 需要运行时借用检查 | `RefCell<T>` | 单线程内部可变性 |
+| 多线程内部可变性 | `Mutex<T>` 或 `RwLock<T>` | 线程安全 |
 
-fn main() {
-    let data = Arc::new(vec![1, 2, 3]);
-    
-    let handles: Vec<_> = (0..3).map(|i| {
-        let data = Arc::clone(&data);
-        std::thread::spawn(move || {
-            println!("Thread {}: {:?}", i, data);
-        })
-    }).collect();
-    
-    for handle in handles {
-        handle.join().unwrap();
-    }
-}
-```
+## 常见错误代码
 
-## Common Patterns
+| 错误码 | 含义 | 常见原因 |
+|-------|------|---------|
+| E0382 | 值被移动后使用 | 尝试使用已转移所有权的值 |
+| E0597 | 生命周期太短 | 返回的引用指向临时值 |
+| E0506 | 借用未结束就被修改 | 可变借用期间尝试修改原值 |
+| E0507 | 从引用移动出数据 | 尝试从引用获取所有权 |
+| E0106 | 生命周期参数缺失 | 返回引用但未标注生命周期 |
 
-### Clone on Write
+## 最佳实践
 
-```rust
-fn modify_string(s: &mut String) {
-    // Only clone if we need mutability
-    let s = std::mem::take(s);
-    *s = s.to_uppercase();
-}
-```
-
-### Return Owned Values
-
-```rust
-fn extract_name(user: &User) -> String {
-    user.name.to_string()  // Return owned String, not &str
-}
-```
-
-### Avoid Dangling References
-
-```rust
-// ❌ Bad - returns reference to local variable
-fn bad_reference() -> &String {
-    let s = String::from("hello");
-    &s  // Error! s will be dropped
-}
-
-// ✅ Good - return owned value
-fn good_reference() -> String {
-    let s = String::from("hello");
-    s  // Ownership transferred
-}
-```
-
-## Summary Table
-
-| Scenario | Solution |
-|----------|----------|
-| Transfer ownership | Move (implicit) |
-| Borrow without transfer | Immutable reference `&T` |
-| Mutate through reference | Mutable reference `&mut T` |
-| Partial ownership | Slices `&[T]`, `&str` |
-| Heap allocation | `Box<T>` |
-| Shared ownership (single-threaded) | `Rc<T>` |
-| Shared ownership (multi-threaded) | `Arc<T>` |
-| Mutability through immutable | `RefCell<T>`, `Cell<T>` |
-
+1. **优先返回所有权**：让调用者决定是否需要所有权
+2. **借用优于移动**：只读操作使用引用
+3. **生命周期名称要有意义**：使用描述性名称如 `'connection`、`'file`
+4. **避免不必要的克隆**：使用引用传递大对象
+5. **理解借用规则**：可变引用和不可变引用不能同时存在
