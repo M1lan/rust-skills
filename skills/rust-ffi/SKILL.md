@@ -1,58 +1,58 @@
 ---
 name: rust-ffi
-description: "FFI 跨语言互操作专家。处理 C/C++ 互操作、bindgen、PyO3、Java JNI、内存布局、数据转换等问题。触发词：FFI, C, C++, bindgen, cbindgen, PyO3, jni, extern, libc, CString, CStr, 跨语言, 互操作, 绑定"
+description: "FFI and cross-language interoperability: C/C++, bindgen, PyO3, JNI, memory layout, data conversion. Triggers: FFI, C, C++, bindgen, cbindgen, PyO3, jni, extern, libc, CString, CStr"
 globs: ["**/*.rs"]
 ---
 
-# FFI 跨语言互操作
+# FFI Interop
 
-## 核心问题
+## Core issues
 
-**如何安全地在 Rust 和其他语言之间传递数据？**
+**Key question:** How do we safely pass data between Rust and C/C++?
 
-FFI 是危险的。任何错误都可能导致未定义行为。
+FFI is unsafe by nature; mistakes can cause undefined behavior.
 
 ---
 
-## 绑定生成
+## Binding generation
 
 ### C/C++ → Rust (bindgen)
 
 ```bash
-# 自动生成 bindings
+# Auto-generate bindings
 bindgen input.h \
-    --output src/bindings.rs \
-    --whitelist-type 'my_*' \
-    --whitelist-function 'my_*'
+ --output src/bindings.rs \
+ --whitelist-type 'my_*' \
+ --whitelist-function 'my_*'
 ```
 
 ### Rust → C (cbindgen)
 
 ```bash
-# 生成 C 头文件
+# Generate C Headers
 cbindgen --crate mylib --output include/mylib.h
 ```
 
 ---
 
-## 数据类型映射
+## Type mapping
 
-| Rust | C | 注意事项 |
+| Rust | C | Notes |
 |-----|---|---------|
-| `i32` | `int` | 通常匹配 |
-| `i64` | `long long` | 跨平台注意 |
-| `usize` | `uintptr_t` | 指针大小 |
-| `*const T` | `const T*` | 只读 |
-| `*mut T` | `T*` | 可写 |
-| `&CStr` | `const char*` | UTF-8 保证 |
-| `CString` | `char*` | 所有权转移 |
-| `NonNull<T>` | `T*` | 非空指针 |
+| `i32` | `int` | Usually match |
+| `i64` | `long long` | Platform-dependent |
+| `usize` | `uintptr_t` | Pointer-sized |
+| `*const T` | `const T*` | Read-only |
+| `*mut T` | `T*` | Writable |
+| `&CStr` | `const char*` | UTF-8 string |
+| `CString` | `char*` | Owned C string |
+| `NonNull<T>` | `T*` | Non-null pointer |
 
 ---
 
-## 常见模式
+## Common patterns
 
-### 调用 C 函数
+### Call C function
 
 ```rust
 use std::ffi::{CStr, CString};
@@ -60,56 +60,56 @@ use libc::c_int;
 
 #[link(name = "curl")]
 extern "C" {
-    fn curl_version() -> *const libc::c_char;
-    fn curl_easy_perform(curl: *mut c_int) -> c_int;
+ fn curl_version() -> *const libc::c_char;
+ fn curl_easy_perform(curl: *mut c_int) -> c_int;
 }
 
 fn get_version() -> String {
-    unsafe {
-        let ptr = curl_version();
-        CStr::from_ptr(ptr).to_string_lossy().into_owned()
-    }
+ unsafe {
+     let ptr = curl_version();
+     CStr::from_ptr(ptr).to_string_lossy().into_owned()
+ }
 }
 ```
 
-### 传递字符串
+### Pass String
 
 ```rust
-// ✅ 安全方式
+// ✅ Safe usage
 fn process_c_string(s: &CStr) {
-    unsafe {
-        some_c_function(s.as_ptr());
-    }
+ unsafe {
+     some_c_function(s.as_ptr());
+ }
 }
 
-// 需要 String 时
+// Creating a CString
 fn get_c_string() -> CString {
-    CString::new("hello").unwrap()
+ CString::new("hello").unwrap()
 }
 ```
 
-### 回调函数
+### Callbacks
 
 ```rust
 extern "C" fn callback(data: *mut libc::c_void) {
-    unsafe {
-        let user_data: &mut UserData = &mut *(data as *mut UserData);
-        user_data.count += 1;
-    }
+ unsafe {
+     let user_data: &mut UserData = &mut *(data as *mut UserData);
+     user_data.count += 1;
+ }
 }
 
 fn register_callback(callback: extern "C" fn(*mut c_void), data: *mut c_void) {
-    unsafe {
-        some_c_lib_register(callback, data);
-    }
+ unsafe {
+     some_c_lib_register(callback, data);
+ }
 }
 ```
 
 ---
 
-## 错误处理
+## Error handling
 
-### C 错误码
+### C error codes
 
 ```rust
 fn call_c_api() -> Result<(), Box<dyn std::error::Error>> {
@@ -121,258 +121,255 @@ fn call_c_api() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### panic 跨越 FFI
+### Panic Crossing FFI
 
 ```rust
-// FFI 边界上的 panic 应该被捕获或禁止
+// Never let a panic cross the FFI boundary.
 #[no_mangle]
 pub extern "C" fn safe_call() {
     std::panic::catch_unwind(|| {
         rust_code_that_might_panic()
-    }).ok();  // 忽略 panic
+    }).ok(); // Ignore panic
 }
 ```
 
 ---
 
-## 内存管理
+## Memory management
 
-| 场景 | 谁释放 | 怎么做 |
+| Scenario | Who frees? | How |
 |-----|-------|-------|
-| C 分配，Rust 使用 | C | 不要 free |
-| Rust 分配，C 使用 | Rust | 传指针，C 用完通知 Rust |
-| 共享缓冲区 | 协商 | 文档说明 |
+| C allocation, Rust use | C | Free |
+| Rust allocation, C use | Rust | Provide free function |
+| Shared buffer | Both | Document ownership rules |
 
 ---
 
-## 常见陷阱
+## Common traps
 
-| 陷阱 | 后果 | 避免 |
+| Trap | Consequences | Avoid |
 |-----|------|-----|
-| 字符串编码错误 | 乱码 | 用 CStr/CString |
-| 生命周期不匹配 | use-after-free | 明确所有权 |
-| 跨线程传递非 Send | 数据竞争 | Arc + 锁 |
-| 胖指针传 C | 内存损坏 | 扁平化数据 |
-| 忘记 `#[no_mangle]` | 符号找不到 | 明确导出 |
+| String Encoding Error | Chaos | Use CStr/CString |
+| Lifetime mismatch | use-after-free | Document ownership |
+| Cross-thread non-Send | Data races | Arc + Mutex |
+| Fat pointers in C | Memory corruption | Use thin pointers |
+| Missing `#[no_mangle]` | Symbols not found | Export correctly |
 
 ---
 
-## 语言绑定工具
+## Language bindings
 
-| 语言 | 工具 | 场景 |
+| Language | Tool | Use case |
 |-----|------|-----|
-| Python | PyO3 | Python 扩展 |
+| Python | PyO3 | Python extension |
 | Java | jni | Android/JVM |
-| Node.js | napi-rs | Node.js 扩展 |
+| Node.js | napi-rs | Node.js Extension |
 | C# | cppwinrt | Windows |
-| Go | cgo | Go 桥接 |
+| Go | cgo | Go bridge |
 
 ---
 
-## 安全准则
+## Safety guidelines
 
-1. **最小化 unsafe**：只包装必要的 C 调用
-2. **防御性编程**：检查空指针、范围
-3. **文档明确**：谁负责释放内存
-4. **测试覆盖**：FFI 错误极难调试
-5. **用 Miri 检查**：发现未定义行为
+1. **Minimize unsafe:** only at FFI boundaries.
+2. **Defensive programming:** validate pointers and lengths.
+3. **Document ownership:** who allocates and who frees.
+4. **Type coverage:** FFI bugs are hard to debug.
+5. **Use Miri/ASan:** catch undefined behavior early.
 
 ---
 
-## C++ 异常处理
+## C++ Abnormal treatment
 
-### cxx 库
+### cxx library
 
 ```rust
-// 使用 cxx 实现安全的 C++ FFI
+// Use cxx Achieving security C++ FFI
 use cxx::CxxString;
 use cxx::CxxVector;
 
 #[cxx::bridge]
 mod ffi {
-    unsafe extern "C++" {
-        include!("my_library.h");
-        
-        type MyClass;
-        
-        fn do_something(&self, input: i32) -> i32;
-        fn get_data(&self) -> &CxxString;
-        fn process_vector(&self, vec: &CxxVector<i32>) -> i32;
-    }
-    
-    #[namespace = "mylib"]
-    unsafe extern "C++" {
-        fn free_resource(ptr: *mut c_void);
-    }
+ unsafe extern "C++" {
+ include!("my_library.h");
+ 
+ type MyClass;
+ 
+ fn do_something(&self, input: i32) -> i32;
+ fn get_data(&self) -> &CxxString;
+ fn process_vector(&self, vec: &CxxVector<i32>) -> i32;
+ }
+ 
+ #[namespace = "mylib"]
+ unsafe extern "C++" {
+ fn free_resource(ptr: *mut c_void);
+ }
 }
 
 struct RustWrapper {
-    ptr: *mut c_void,
+ ptr: *mut c_void,
 }
 
 impl RustWrapper {
-    pub fn new() -> Self {
-        unsafe {
-            Self {
-                ptr: mylib::create_object(),
-            }
-        }
-    }
-    
-    pub fn do_something(&self, input: i32) -> i32 {
-        unsafe {
-            (*self.ptr).do_something(input)
-        }
-    }
+ pub fn new() -> Self {
+ unsafe {
+ Self {
+ ptr: mylib::create_object(),
+ }
+ }
+ }
+ 
+ pub fn do_something(&self, input: i32) -> i32 {
+ unsafe {
+ (*self.ptr).do_something(input)
+ }
+ }
 }
 
 impl Drop for RustWrapper {
-    fn drop(&mut self) {
-        unsafe {
-            mylib::free_resource(self.ptr);
-        }
-    }
+ fn drop(&mut self) {
+ unsafe {
+ mylib::free_resource(self.ptr);
+ }
+ }
 }
 ```
 
-### C++ 异常 → Rust Result
+### C++ Abnormal
 
 ```rust
-// C++ 抛出的异常会转换为 Rust panic
-// 需要用 catch_unwind 捕获
+// C++ It's gonna turn out to be an anomaly. Rust panic
+// I need it. catch_unwind Capture
 
 #[no_mangle]
 pub extern "C" fn safe_cpp_call() -> i32 {
-    let result = std::panic::catch_unwind(|| {
-        unsafe {
-            cpp_function_that_might_throw()
-        }
-    });
-    
-    match result {
-        Ok(value) => value,
-        Err(_) => {
-            // C++ 异常被捕获，返回错误码
-            -1
-        }
-    }
+ let result = std::panic::catch_unwind(|| {
+ unsafe {
+ cpp_function_that_might_throw()
+ }
+ });
+ 
+ match result {
+ Ok(value) => value,
+ Err(_) => {
+ // C++ Unusual capture.,Return error code
+ -1
+ }
+ }
 }
 
-// 更好的方式：自定义错误转换
+// A better way.:Custom Error Conversion
 #[no_mangle]
 pub extern "C" fn checked_cpp_call(error_code: *mut i32) -> *const c_char {
-    let result = std::panic::catch_unwind(|| {
-        unsafe {
-            cpp_function()
-        }
-    });
-    
-    match result {
-        Ok(Ok(value)) => {
-            // 成功
-            value.as_ptr()
-        }
-        Ok(Err(e)) => {
-            // C++ 错误
-            if !error_code.is_null() {
-                unsafe { *error_code = e.code(); }
-            }
-            std::ptr::null()
-        }
-        Err(_) => {
-            // C++ 异常
-            if !error_code.is_null() {
-                unsafe { *error_code = -999; }
-            }
-            std::ptr::null()
-        }
-    }
+ let result = std::panic::catch_unwind(|| {
+ unsafe {
+ cpp_function()
+ }
+ });
+ 
+ match result {
+ Ok(Ok(value)) => {
+ // Success
+ value.as_ptr()
+ }
+ Ok(Err(e)) => {
+ // C++ Error
+ if !error_code.is_null() {
+ unsafe { *error_code = e.code(); }
+ }
+ std::ptr::null()
+ }
+ Err(_) => {
+ // C++ Unusual
+ if !error_code.is_null() {
+ unsafe { *error_code = -999; }
+ }
+ std::ptr::null()
+ }
+ }
 }
 ```
 
-### 栈展开问题
+### Common C++ interop pitfalls
 
 ```rust
-// C++ 栈展开与 Rust 的交互很复杂
+// C++/Rust interop is tricky.
 
-// 1. 禁止 panic 跨越 FFI 边界
+// 1. Don't let panics cross FFI boundaries
 #[no_mangle]
 pub extern "C" fn rust_function() {
-    // Rust 代码可能 panic
-    // 但这会导致 C++ 栈展开时调用 Rust 的 drop，
-    // 可能导致 UB
-    
-    // 解决方案：catch_unwind
-    let _ = std::panic::catch_unwind(|| {
-        risky_rust_code()
-    });
+ // Rust code may panic.
+ // If a panic crosses into C++, it's UB.
+ 
+ // Solution: catch_unwind
+ let _ = std::panic::catch_unwind(|| {
+ risky_rust_code()
+ });
 }
 
-// 2. C++ 析构函数与 Rust Drop
-// C++ 析构函数在栈展开时会调用
-// Rust Drop 在 panic 时也会调用
-// 两者同时存在可能导致问题
+// 2. C++ destructors vs Rust Drop
+// C++ destructors run during stack unwinding.
+// Rust Drop also runs; double cleanup can happen.
 
-// 解决方案：使用 ManuallyDrop
+// Solution: use ManuallyDrop
 struct Wrapper {
-    inner: ManuallyDrop<InnerType>,
+ inner: ManuallyDrop<InnerType>,
 }
 
 impl Drop for Wrapper {
-    fn drop(&mut self) {
-        // 防止两次清理
-        // 但 C++ 析构函数可能仍然会调用
-    }
+ fn drop(&mut self) {
+ // Prevent double cleanup.
+ }
 }
 ```
 
-### C++ 智能指针桥接
+### C++ Smart Pointer Bridge
 
 ```rust
-// 使用 cxx 桥接 std::unique_ptr
+// Use cxx Bridge. std::unique_ptr
 #[cxx::bridge]
 mod ffi {
-    unsafe extern "C++" {
-        include!("memory");
-        
-        type UniquePtr<T>;
-        
-        // 所有权转移：Rust → C++
-        fn take_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
-        
-        // 所有权转移：C++ → Rust
-        fn create_unique_ptr() -> Box<UniquePtr<T>>;
-        fn release_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
-    }
+ unsafe extern "C++" {
+ include!("memory");
+ 
+ type UniquePtr<T>;
+ 
+ // Transfer of title:Rust → C++
+ fn take_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
+ 
+ // Transfer of title:C++ → Rust
+ fn create_unique_ptr() -> Box<UniquePtr<T>>;
+ fn release_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
+ }
 }
 
-// 手动桥接 std::shared_ptr
+// Manual bridge. std::shared_ptr
 struct SharedPtr<T> {
-    ptr: *mut T,
-    ref_count: usize,
+ ptr: *mut T,
+ ref_count: usize,
 }
 
 impl<T> SharedPtr<T> {
-    pub fn new(ptr: *mut T) -> Self {
-        Self {
-            ptr,
-            ref_count: 1,
-        }
-    }
-    
-    pub fn clone(&mut self) {
-        self.ref_count += 1;
-    }
-    
-    pub fn drop(&mut self) {
-        self.ref_count -= 1;
-        if self.ref_count == 0 {
-            unsafe {
-                // 调用 C++ delete
-                cpp_delete(self.ptr);
-            }
-        }
-    }
+ pub fn new(ptr: *mut T) -> Self {
+ Self {
+ ptr,
+ ref_count: 1,
+ }
+ }
+ 
+ pub fn clone(&mut self) {
+ self.ref_count += 1;
+ }
+ 
+ pub fn drop(&mut self) {
+ self.ref_count -= 1;
+ if self.ref_count == 0 {
+ unsafe {
+ // Call C++ delete
+ cpp_delete(self.ptr);
+ }
+ }
+ }
 }
 
 unsafe impl<T> Send for SharedPtr<T> {}
@@ -381,13 +378,12 @@ unsafe impl<T> Sync for SharedPtr<T> {}
 
 ---
 
-## 常见问题
+## Common problems
 
-| 问题 | 原因 | 解决 |
+| Problem | Reason | Solve |
 |-----|------|-----|
-| C++ 异常导致 panic | 未捕获异常 | catch_unwind |
-| 内存双重释放 | 所有权不清 | 明确协议 |
-| 胖指针损坏 | 布局不匹配 | \#[repr(C)] |
-| 符号未导出 | \#[no_mangle] 缺失 | 添加属性 |
-| 线程安全问题 | 非 Send/Sync | Arc + 锁 |
-
+| C++ Unusual Cause Panic | Uncaptured anomaly | catch_unwind |
+| Memory Double Release | Lack of ownership | Clear agreement |
+| Fat pointer broken. | Layout does not match | \#[repr(C)] |
+| Symbol not exported | ## [no mangle] missing | Add Properties |
+| Thread security | Not Send/Sync | Arc+Lock |

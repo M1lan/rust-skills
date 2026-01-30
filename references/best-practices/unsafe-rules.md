@@ -1,658 +1,658 @@
 ---
 name: unsafe-rules
-description: "Unsafe 代码安全规则"
+description: "Unsafe Code security rules"
 category: code-safety
 triggers: ["unsafe", "safety", "SAFETY", "raw pointer", "FFI"]
 related_skills:
-  - rust-unsafe
-  - rust-ffi
-  - rust-ownership
+ - rust-unsafe
+ - rust-ffi
+ - rust-ownership
 ---
 
-# Unsafe 代码规则
+# Unsafe Code Rules
 
-> 本规则集定义了 unsafe 代码的安全检查标准。
+> This set of rules defines the security check standards for unsafe codes.
 
 ---
 
-## 高危规则（红色 - 必须遵守）
+## High-risk rules (red - subject to compliance)
 
-### U-001: Raw Pointer 解引用必须包裹在 unsafe 块中
+### U-001: Raw Pointer unquote must be packaged in unsafe block
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let ptr = &data as *const Data;
 unsafe {
-    println!("{}", (*ptr).value);
+ println!("{}", (*ptr).value);
 }
 
-// ❌ 错误
+// ❌ Error
 let ptr = &data as *const Data;
-println!("{}", (*ptr).value); // 直接解引用 raw pointer
+println!("{}", (*ptr).value); // Direct decitation raw pointer
 ```
 
-### U-002: 必须为所有 unsafe 函数添加 SAFETY 注释
+### U-002: A SAFETY Comment must be added to all unsafe functions
 
 ```rust
-/// 设置原始内存区域的值
+/// Set the value of the original memory area
 ///
 /// # Safety
 ///
-/// - `ptr` 必须指向一个已分配的有效内存块
-/// - `size` 必须等于实际分配的字节数
-/// - 调用者必须确保在函数返回前不会释放该内存
+/// - `ptr` Must point to a distributed active memory block
+/// - `size` The number of bytes must be equal to the actual distribution
+/// - The caller must ensure that the memory is not released before the function returns
 unsafe fn set_memory(ptr: *mut u8, size: usize, value: u8) {
-    // ...
+ // ...
 }
 ```
 
-### U-003: FFI 调用必须使用 extern 块声明
+### U-003: FFI call must use extern block declarations
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 extern "C" {
-    fn c_strlen(s: *const c_char) -> usize;
+ fn c_strlen(s: *const c_char) -> usize;
 }
 
-// ❌ 错误
-fn c_strlen(s: *const c_char) -> usize; // 缺少 extern 声明
+// ❌ Error
+fn c_strlen(s: *const c_char) -> usize; // Missing extern Statement
 ```
 
-### U-004: 跨 FFI 边界的类型必须具有 #[repr(C)]
+### U-004: The type that crosses the FFI boundary must have #[repr(C)]
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 #[repr(C)]
 pub struct FfiHeader {
-    pub magic: u32,
-    pub version: u16,
-    pub flags: u8,
+ pub magic: u32,
+ pub version: u16,
+ pub flags: u8,
 }
 
-// ❌ 错误 - 内存布局不确定
+// ❌ Error - Memory layout is uncertain
 pub struct Header {
-    pub magic: u32,
-    pub version: u16,
+ pub magic: u32,
+ pub version: u16,
 }
 ```
 
-### U-005: union 字段访问必须在 unsafe 块中
+### U-005: union field access must be in unsafe block
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 union IntOrFloat {
-    as_i32: i32,
-    as_f32: f32,
+ as_i32: i32,
+ as_f32: f32,
 }
 
 let value = unsafe { int_or_float.as_i32 };
 
-// ❌ 错误
+// ❌ Error
 let value = int_or_float.as_i32;
 ```
 
-### U-006: 指针算术运算后必须验证边界
+### U-006: The boundary must be verified after the pointer algorithm
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let ptr = buffer.as_ptr().offset(10);
 if ptr < buffer.as_ptr().add(buffer.len()) {
-    unsafe { *ptr = 0xFF; }
+ unsafe { *ptr = 0xFF; }
 }
 
-// ❌ 错误 - 可能越界
+// ❌ Error - Could cross the border.
 let ptr = buffer.as_ptr().offset(1000);
 unsafe { *ptr = 0xFF; }
 ```
 
-### U-007: 实现 Send/Sync 必须保证协变
+### U-007: Achieving Send/Sync must ensure a change
 
 ```rust
-// ✅ 正确 - 线程安全
+// ✅ Correct. - Thread clear.
 unsafe impl Send for ThreadSafeContainer {}
 
-// ❌ 错误 - Rc 不是线程安全的
-unsafe impl Send for NotThreadSafe {} // Rc<T> 不能跨线程发送
+// ❌ Error - Rc It's not linear.
+unsafe impl Send for NotThreadSafe {} // Rc<T> Could not close temporary folder: %s
 ```
 
-### U-008: 展宽类型（#[repr(u*)]）转换必须安全
+### U-008: Widening type (#[repr(u*)]) conversion must be secure
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn to_u32(val: u8) -> u32 {
-    val as u32  // 小类型到大类型，安全
+ val as u32 // Small to Large,Clear.
 }
 
-// ❌ 危险 - 大类型到小类型，可能丢失数据
+// ❌ Danger. - Large to Small,Possible data loss
 fn to_u8(val: u32) -> u8 {
-    val as u8  // 需要额外检查
+ val as u8 // Need additional checks
 }
 ```
 
-### U-009: 嵌入式的 ISR 中禁止动态分配
+### U-009: Ban dynamic distribution in embedded ISR
 
 ```rust
-// ✅ 正确 - 静态分配
+// ✅ Correct. - Static distribution
 static mut BUFFER: [u8; 256] = [0; 256];
 
-// ❌ 错误 - 堆分配可能在 ISR 中失败
+// ❌ Error - Pocket distribution is possible ISR Failed
 fn interrupt_handler() {
-    let mut vec = Vec::new(); // 禁止！
+ let mut vec = Vec::new(); // Ban!
 }
 ```
 
-### U-010: 禁止返回指向局部变量的指针
+### U-010: Ban return of a pointer pointing to a local variable
 
 ```rust
-// ❌ 错误 - 悬垂指针
+// ❌ Error - Staple Pointer
 fn bad_function() -> *const i32 {
-    let x = 42;
-    &x as *const i32  // x 被释放后指针无效
+ let x = 42;
+ &x as *const i32 // x It's not working after release.
 }
 
-// ✅ 正确 - 返回静态数据
+// ✅ Correct. - Returns static data
 fn good_function() -> *const i32 {
-    static X: i32 = 42;
-    &X as *const i32
+ static X: i32 = 42;
+ &X as *const i32
 }
 ```
 
-### U-011: 指针类型转换必须保证对齐
+### U-011: Typologies must be aligned
 
 ```rust
-// ✅ 正确 - 正确对齐
+// ✅ Correct. - Correct Alignment
 #[repr(align(8))]
 struct AlignedData {
-    value: u64,
+ value: u64,
 }
 
-// ❌ 错误 - 可能对齐不当
+// ❌ Error - Maybe it's wrong.
 let unaligned_ptr = 1 as *const u64;
-unsafe { *unaligned_ptr = 42; } // 可能崩溃
+unsafe { *unaligned_ptr = 42; } // Could collapse.
 ```
 
-### U-012: 手动实现的 drop 必须处理所有字段
+### U-012: Manually achieved drop must handle all fields
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 impl Drop for ManualResource {
-    fn drop(&mut self) {
-        unsafe {
-            libc::free(self.ptr as *mut libc::c_void);
-        }
-        self.is_dropped = true;
-    }
+ fn drop(&mut self) {
+ unsafe {
+ libc::free(self.ptr as *mut libc::c_void);
+ }
+ self.is_dropped = true;
+ }
 }
 
-// ❌ 错误 - 遗漏某些资源的释放
+// ❌ Error - Missing release of certain resources
 impl Drop for ManualResource {
-    fn drop(&mut self) {
-        if self.ptr.is_valid() {
-            libc::free(self.ptr as *mut libc::c_void);
-        }
-        // 遗漏了 handle 的关闭
-    }
+ fn drop(&mut self) {
+ if self.ptr.is_valid() {
+ libc::free(self.ptr as *mut libc::c_void);
+ }
+ // It's missing. handle Close
+ }
 }
 ```
 
 ---
 
-## 中危规则（橙色 - 建议遵守）
+## Mid-risk rule (Orange - recommended)
 
-### U-013: 避免在 unsafe 中调用其他 unsafe 函数
+### U-013: Avoid calling other unsafe functions in unsafe
 
 ```rust
-// ✅ 推荐 - 将复杂 unsafe 操作封装
+// ✅ Recommendations - It will be complicated. unsafe Operation Envelope
 unsafe fn safe_wrapper(ptr: *mut T) -> Result<(), Error> {
-    check_ptr_validity(ptr)?;  // 先检查
-    complex_operation(ptr)      // 再操作
+ check_ptr_validity(ptr)?; // Check first.
+ complex_operation(ptr) // Reactivate
 }
 
 unsafe fn complex_operation(ptr: *mut T) {
-    // 假设已验证的指针操作
-    (*ptr).do_something();
+ // Assuming verified pointer operation
+ (*ptr).do_something();
 }
 ```
 
-### U-014: 使用 MaybeUninit 代替未初始化的 union 字段
+### U-014: Replace union field with MaybeUninit
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 let mut buffer = MaybeUninit::<[u8; 1024]>::uninit();
 let ptr = buffer.as_mut_ptr();
 unsafe {
-    ptr.write_bytes(0, 1024);
+ ptr.write_bytes(0, 1024);
 }
 let buffer = unsafe { buffer.assume_init() };
 ```
 
-### U-015: FFI 字符串必须处理编码和长度
+### U-015: FFI strings must handle encoding and length
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 unsafe fn c_string_to_rust(s: *const c_char) -> Result<String, Utf8Error> {
-    if s.is_null() {
-        return Ok(String::new());
-    }
-    let c_str = std::ffi::CStr::from_ptr(s);
-    c_str.to_str()?.to_string()
+ if s.is_null() {
+ return Ok(String::new());
+ }
+ let c_str = std::ffi::CStr::from_ptr(s);
+ c_str.to_str()?.to_string()
 }
 ```
 
-### U-016: 跨线程传递裸指针必须使用 Send
+### U-016: Trans-linear nudity pointer must use Send
 
 ```rust
-// ✅ 推荐 - 使用 Arc 包装
+// ✅ Recommendations - Use Arc Packaging
 struct ThreadSafePtr {
-    ptr: *mut T,
-    _marker: std::marker::PhantomData<*mut ()>,
+ ptr: *mut T,
+ _marker: std::marker::PhantomData<*mut ()>,
 }
 
 unsafe impl Send for ThreadSafePtr {}
 unsafe impl Sync for ThreadSafePtr {}
 ```
 
-### U-017: 避免在热点代码中频繁创建原始指针
+### U-017: Avoid frequent creation of original pointers in hot code
 
 ```rust
-// ✅ 推荐 - 缓存指针
+// ✅ Recommendations - Cache Pointer
 fn process_buffer(buffer: &mut [u8]) {
-    let ptr = buffer.as_mut_ptr();
-    let len = buffer.len();
-    for i in 0..len {
-        unsafe { ptr.add(i).write(compute(i)); }
-    }
+ let ptr = buffer.as_mut_ptr();
+ let len = buffer.len();
+ for i in 0..len {
+ unsafe { ptr.add(i).write(compute(i)); }
+ }
 }
 ```
 
-### U-018: 实现 Drop 的类型不应包含借用字段
+### U-018: The type of Drop achieved should not include borrowed fields
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 struct Container {
-    data: Vec<u8>,     // 拥有所有权
-    capacity: usize,
+ data: Vec<u8>, // Ownership
+ capacity: usize,
 }
 
-// ❌ 问题 - 借用字段可能导致 drop 问题
+// ❌ Problem - It's possible to borrow fields drop Problem
 struct ProblemContainer<'a> {
-    data: &'a [u8],    // 借用
+ data: &'a [u8], // Borrow.
 }
 ```
 
-### U-019: 使用 ptr::read/write 时注意 provenance
+### U-019: Attention when using ptr:read/write
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 let val = unsafe { ptr.read() };
 ptr.write(val + 1);
 
-// ❌ 注意 - 避免混用不同来源的指针
+// ❌ Attention. - Avoid mixing fingers from different sources
 let val = ptr1.read();
-ptr2.write(val);  // 可能违反 provenance 规则
+ptr2.write(val); // Possible violations provenance Rule
 ```
 
-### U-020: 跨 FFI 边界传递 Option 指针必须约定语义
+### U-020: Crossing FFI Boundaries
 
 ```rust
-// ✅ 推荐 - 明确 null 指针语义
+// ✅ Recommendations - Clear null Pointer semantics
 extern "C" {
-    /// 返回下一个元素，如果到达末尾返回 null
-    fn get_next(ptr: *mut Context) -> *mut Element;
+ /// Return next element,If you reach the end and return null
+ fn get_next(ptr: *mut Context) -> *mut Element;
 }
 ```
 
-### U-021: 避免在循环中重复 unsafe 转换
+### U-021: Avoid repeating unsafe conversions in the cycle
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 let base = data.as_ptr() as *const ComplexType;
 for i in 0..len {
-    unsafe { process(&*base.add(i)); }
+ unsafe { process(&*base.add(i)); }
 }
 ```
 
-### U-022: 内存对齐检查应使用 align_of 和 align_to
+### U-022: Memory alignment check should use sign of and log to
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 use std::ptr;
 
 let misalignment = ptr::align_of::<u64>();
 if addr % misalignment != 0 {
-    // 需要对齐调整
+ // Need adjustment
 }
 ```
 
-### U-023: 使用 #[track_caller] 追踪 unsafe 调用位置
+### U-023: Track unsafe call location using #[track caller]
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 #[inline]
 #[track_caller]
 pub unsafe fn unchecked_get_unchecked<T>(index: usize) -> &T {
-    // ...
+ // ...
 }
 ```
 
 ---
 
-## 低危规则（黄色 - 参考建议）
+## Low risk rule (yellow - reference recommendation)
 
-### U-024: 优先使用引用而非裸指针
+### U-024: Prioritize citation rather than nudity pointer
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 fn process_data(data: &[u8]) { ... }
 
-// 仅在需要别名时使用裸指针
+// Use a naked finger only when an alias is needed
 ```
 
-### U-025: 避免将同一个指针转换为多种类型
+### U-025: Avoid converting the same pointer to multiple types
 
 ```rust
-// ✅ 推荐 - 统一类型转换
+// ✅ Recommendations - Uniform type conversion
 let ptr: *const Header = buffer.as_ptr().cast();
-// 保持 ptr 为 Header 类型使用
+// Hold ptr Yes Header Type used
 ```
 
-### U-026: 使用 NonNull 代替 null 检查的 *const/*mut
+### U-026: *cont/ *mut with NonNull instead of null
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 use std::ptr::NonNull;
 
-let ptr = NonNull::dangling();  // 总是有效
+let ptr = NonNull::dangling(); // Always works.
 if let Some(data) = NonNull::new(ptr) {
-    // ...
+ // ...
 }
 ```
 
-### U-027: 考虑使用 Pin 固定自引用结构
+### U-027: Consider using Pin to fix self-referenced structures
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 use std::pin::Pin;
 
 struct SelfRef {
-    data: u32,
-    ptr: *const u32,
+ data: u32,
+ ptr: *const u32,
 }
 
 impl SelfRef {
-    fn new(data: u32) -> Pin<Box<Self>> {
-        let mut this = Box::pin(SelfRef {
-            data,
-            ptr: std::ptr::null(),
-        });
-        // 安全地设置自引用
-        let self_ptr: *const u32 = &this.data;
-        unsafe { Pin::get_unchecked_mut(&mut *this).ptr = self_ptr; }
-        this
-    }
+ fn new(data: u32) -> Pin<Box<Self>> {
+ let mut this = Box::pin(SelfRef {
+ data,
+ ptr: std::ptr::null(),
+ });
+ // Set self-reference safely
+ let self_ptr: *const u32 = &this.data;
+ unsafe { Pin::get_unchecked_mut(&mut *this).ptr = self_ptr; }
+ this
+ }
 }
 ```
 
-### U-028: FFI 错误处理使用 Result 类型
+### U-028: FFI error processing using Resault type
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 extern "C" {
-    fn risky_operation() -> c_int;
+ fn risky_operation() -> c_int;
 }
 
 fn safe_risky_operation() -> Result<(), FfiError> {
-    let result = unsafe { risky_operation() };
-    if result == 0 {
-        Ok(())
-    } else {
-        Err(FfiError::from_raw_error(result))
-    }
+ let result = unsafe { risky_operation() };
+ if result == 0 {
+ Ok(())
+ } else {
+ Err(FfiError::from_raw_error(result))
+ }
 }
 ```
 
-### U-029: 避免在库 API 中暴露 unsafe
+### U-029: Avoid exposure in library API unsafe
 
 ```rust
-// ✅ 推荐 - 内部 unsafe，外部安全抽象
+// ✅ Recommendations - Internal unsafe,External security abstract
 pub fn safe_process(data: &[u8]) -> Result<Output, Error> {
-    // 内部可以使用 unsafe，但对外提供安全接口
-    unsafe { self.inner.process_unsafe(data) }
+ // Available internally unsafe,But there's a secure interface.
+ unsafe { self.inner.process_unsafe(data) }
 }
 ```
 
-### U-030: 使用 addr_of! 获取字段地址
+### U-030: Use addr of! Get Field Address
 
 ```rust
-// ✅ 推荐 - 避免创建临时引用
+// ✅ Recommendations - Avoid creating temporary references
 let field_addr = unsafe { std::ptr::addr_of!(structure.field) };
 ```
 
-### U-031: 考虑使用地址不变性（address innocence）
+### U-031: Consider the use of address fixance
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 fn compare_ptrs<T>(p1: *const T, p2: *const T) -> bool {
-    p1 == p2
+ p1 == p2
 }
 ```
 
-### U-032: 为复杂的 unsafe 操作创建安全包装器
+### U-032: Create safe packaging for complex unsafe operations
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 pub struct SafeBuffer {
-    ptr: NonNull<u8>,
-    size: usize,
+ ptr: NonNull<u8>,
+ size: usize,
 }
 
 impl SafeBuffer {
-    pub fn new(size: usize) -> Result<Self, AllocError> {
-        let ptr = NonNull::new(unsafe {
-            libc::malloc(size) as *mut u8
-        }).ok_or(AllocError)?;
-        Ok(SafeBuffer { ptr, size })
-    }
+ pub fn new(size: usize) -> Result<Self, AllocError> {
+ let ptr = NonNull::new(unsafe {
+ libc::malloc(size) as *mut u8
+ }).ok_or(AllocError)?;
+ Ok(SafeBuffer { ptr, size })
+ }
 
-    pub fn as_slice(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.ptr.as_ptr(), self.size) }
-    }
+ pub fn as_slice(&self) -> &[u8] {
+ unsafe { std::slice::from_raw_parts(self.ptr.as_ptr(), self.size) }
+ }
 
-    // 自动释放内存
-    impl Drop for SafeBuffer {
-        fn drop(&mut self) {
-            unsafe { libc::free(self.ptr.as_ptr() as *mut libc::c_void); }
-        }
-    }
+ // Automatically release memory
+ impl Drop for SafeBuffer {
+ fn drop(&mut self) {
+ unsafe { libc::free(self.ptr.as_ptr() as *mut libc::c_void); }
+ }
+ }
 }
 ```
 
-### U-033: 避免使用 transmute 进行类型转换
+### U-033: Avoid type conversion using transmute
 
 ```rust
-// ✅ 推荐 - 使用更安全的替代方案
+// ✅ Recommendations - Use of safer alternatives
 let bytes: [u8; 4] = u32::to_ne_bytes(value);
 
-// 仅在必要时使用 transmute，并记录原因
+// Use only when necessary transmute,And record why.
 unsafe {
-    std::mem::transmute::<u32, [u8; 4]>(value)
+ std::mem::transmute::<u32, [u8; 4]>(value)
 }
 ```
 
-### U-034: 考虑使用 ManuallyDrop 处理特殊释放顺序
+### U-034: Consider using Manuel Drop to handle special release sequences
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 use std::mem::ManuallyDrop;
 
 struct SpecialResource {
-    handle: ResourceHandle,
-    metadata: Metadata,
+ handle: ResourceHandle,
+ metadata: Metadata,
 }
 
 impl Drop for SpecialResource {
-    fn drop(&mut self) {
-        // 确保 metadata 先释放
-        let metadata = ManuallyDrop::take(&mut self.metadata);
-        drop(metadata);
+ fn drop(&mut self) {
+ // Ensure metadata Release first.
+ let metadata = ManuallyDrop::take(&mut self.metadata);
+ drop(metadata);
 
-        // 然后释放 handle
-        unsafe { self.handle.release(); }
-    }
+ // Then release. handle
+ unsafe { self.handle.release(); }
+ }
 }
 ```
 
-### U-035: 使用 copy_nonoverlapping 时的重叠检查
+### U-035: Overlap check when using copy nonoverlapping
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 use std::ptr::{copy_nonoverlapping, copy};
 
 let dest = target.as_mut_ptr();
 let src = source.as_ptr();
 
 if dest as usize >= src as usize + source.len() {
-    // 无重叠，可以安全使用 copy_nonoverlapping
-    unsafe { copy_nonoverlapping(src, dest, source.len()); }
+ // No overlap,It's safe to use. copy_nonoverlapping
+ unsafe { copy_nonoverlapping(src, dest, source.len()); }
 } else {
-    // 有重叠风险，使用 copy
-    unsafe { copy(src, dest, source.len()); }
+ // Overlapping risks,Use copy
+ unsafe { copy(src, dest, source.len()); }
 }
 ```
 
-### U-036: 为 unsafe 代码编写集成测试
+### U-036: Integrated testing for unsafe code
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 #[cfg(test)]
 mod unsafe_api_tests {
-    use super::*;
+ use super::*;
 
-    #[test]
-    fn test_unsafe_pointer_operations() {
-        let mut value = 42i32;
-        let ptr = &mut value as *mut i32;
+ #[test]
+ fn test_unsafe_pointer_operations() {
+ let mut value = 42i32;
+ let ptr = &mut value as *mut i32;
 
-        unsafe {
-            assert_eq!(read_ptr(ptr), 42);
-            write_ptr(ptr, 100);
-        }
-        assert_eq!(value, 100);
-    }
+ unsafe {
+ assert_eq!(read_ptr(ptr), 42);
+ write_ptr(ptr, 100);
+ }
+ assert_eq!(value, 100);
+ }
 }
 ```
 
-### U-037: 考虑使用地址混淆保护安全关键数据
+### U-037: Consider using addresses to confuse key security data
 
 ```rust
-// ✅ 推荐 - 简单 XOR 混淆
+// ✅ Recommendations - Simple XOR Confusion
 fn obfuscate<T>(value: &mut T, key: u64) {
-    let bytes = unsafe {
-        std::slice::from_raw_parts_mut(
-            value as *mut T as *mut u8,
-            std::mem::size_of::<T>()
-        )
-    };
-    for byte in bytes {
-        *byte ^= key as u8;
-    }
+ let bytes = unsafe {
+ std::slice::from_raw_parts_mut(
+ value as *mut T as *mut u8,
+ std::mem::size_of::<T>()
+ )
+ };
+ for byte in bytes {
+ *byte ^= key as u8;
+ }
 }
 ```
 
-### U-038: 避免在泛型代码中产生过多 monomorphization
+### U-038: Avoid excessive generation of generic codes
 
 ```rust
-// ✅ 推荐 - 抽象到单一实现
+// ✅ Recommendations - Abstract to Single Realization
 fn generic_process<T: Processable>(data: &mut [T]) {
-    let ptr = data.as_mut_ptr();
-    for i in 0..data.len() {
-        unsafe { ptr.add(i).process(); }
-    }
+ let ptr = data.as_mut_ptr();
+ for i in 0..data.len() {
+ unsafe { ptr.add(i).process(); }
+ }
 }
 ```
 
-### U-039: 使用地址比较时考虑 provenance
+### U-039: Consider the issue when comparing addresses
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 fn is_same_object<T>(a: &T, b: &T) -> bool {
-    std::ptr::eq(a as *const T, b as *const T)
+ std::ptr::eq(a as *const T, b as *const T)
 }
 ```
 
-### U-040: 考虑使用地址空间布局随机化（ASLR）
+### U-040: Considering the use of address space layout randomization (ASLR)
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 fn random_offset(base: usize, range: usize) -> usize {
-    let random = fastrand::u32(0..1000) as usize;
-    base + (random % range)
+ let random = fastrand::u32(0..1000) as usize;
+ base + (random % range)
 }
 ```
 
-### U-041: 避免使用全局可变状态
+### U-041: Avoid global variability
 
 ```rust
-// ✅ 推荐 - 使用线程局部存储
+// ✅ Recommendations - Use thread local storage
 thread_local! {
-    static THREAD_BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::new());
+ static THREAD_BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::new());
 }
 ```
 
-### U-042: 使用 zeroed() 后必须初始化
+### U-042: Initialize after using zeroed()
 
 ```rust
-// ✅ 推荐
+// ✅ Recommendations
 let mut value: MaybeUninit<ComplexType> = MaybeUninit::uninit();
-// ... 初始化所有字段
+// ... Initialize all fields
 let value = unsafe { value.assume_init() };
 ```
 
-### U-043: 考虑内存对齐对性能的影响
+### U-043: Consider the effect of memory alignment on performance
 
 ```rust
-// ✅ 推荐 - 结构体按大小排序
+// ✅ Recommendations - Structure by Size
 #[repr(C)]
 struct OptimizedLayout {
-    a: u64,    // 8 字节
-    b: u32,    // 4 字节
-    c: u8,     // 1 字节
-    _pad: [u8; 3],  // 填充到 16 字节对齐
+ a: u64, // 8 Bytes
+ b: u32, // 4 Bytes
+ c: u8, // 1 Bytes
+ _pad: [u8; 3], // Fill to 16 Byte Alignment
 }
 ```
 
-### U-044: 避免在 unsafe 中调用 drop
+### U-044: Avoid calling drop in unsafe
 
 ```rust
-// ✅ 推荐 - 使用 ManuallyDrop
+// ✅ Recommendations - Use ManuallyDrop
 use std::mem::ManuallyDrop;
 
 let mut resource = ManuallyDrop::new(Resource::new());
-// ... 使用资源
-ManuallyDrop::drop(&mut resource);  // 显式调用
+// ... Use of resources
+ManuallyDrop::drop(&mut resource); // Visible Call
 ```
 
-### U-045: 使用地址标记检测 use-after-free
+### U-045: Use address tags to detect use-after-free
 
 ```rust
-// ✅ 推荐 - 简单哨兵值
+// ✅ Recommendations - Simple sentry.
 const FREED_MARKER: usize = 0xDEADBEEF;
 
 fn deallocate(ptr: &mut usize) {
-    unsafe { libc::free(*ptr as *mut libc::c_void); }
-    *ptr = FREED_MARKER;
+ unsafe { libc::free(*ptr as *mut libc::c_void); }
+ *ptr = FREED_MARKER;
 }
 
 fn access(ptr: &mut usize) -> bool {
-    if *ptr == FREED_MARKER {
-        return false;  // 已释放
-    }
-    // 安全访问
-    true
+ if *ptr == FREED_MARKER {
+ return false; // Released
+ }
+ // Security visits
+ true
 }
 ```
 
-### U-046: 考虑使用 miri 检测 undefined behavior
+### U-046: Consider using miri undefined behavior
 
 ```cargo
 [profile.dev]
@@ -666,30 +666,29 @@ miri = "0.1"
 cargo +nightly miri test
 ```
 
-### U-047: 定期审查 unsafe 代码覆盖率
+### U-047: Periodic review of unsafe code coverage
 
 ```rust
-// 使用 coverage 工具分析
+// Use coverage Tool Analysis
 #[unsafe_code_analysis::covered]
 unsafe fn complex_operation() {
-    // ...
+ // ...
 }
 ```
 
 ---
 
-## 规则速查表
+## Rule sheet
 
-| 级别 | 规则数 | 说明 |
+| Level | Number of rules | Annotations |
 |-----|-------|------|
-| 🔴 高危 | 12 | 必须遵守，违反会导致 UB |
-| 🟠 中危 | 15 | 建议遵守，提高代码安全性 |
-| 🟡 低危 | 20 | 参考建议，代码质量优化 |
+| High risk | 12 | We must comply. |
+| It's dangerous. | 15 | Recommendation complied, code security improved |
+| It's low. | 20 | Reference recommendations, code quality optimization |
 
 ---
 
-## 关联技能
-- `rust-unsafe` - Unsafe 代码基础
-- `rust-ffi` - 跨语言调用
-- `rust-ownership` - 所有权与借用
-
+## Related skills
+- Unsafe code fundamentals
+- FFI
+- Ownership and borrowing

@@ -1,123 +1,123 @@
 ---
 name: rust-skill-index
-description: "Rust 技能索引。提供所有技能的快速导航和查询入口。触发词：skill, index, 技能, 索引, 目录"
+description: "Rust skills index: navigation across all skills. Triggers: skill, index"
 ---
 
-# Rust 技能索引
+# Rust Skills Index
 
-> **当前共 35 个技能**，完整内容请参见根目录 `SKILL.md`
+> Current total: 35 skills (see root directory for full content)
 
 ---
 
-## 快速导航
+## Quick Navigation
 
-| 类别 | 技能数量 | 用途 |
+| Category | Number of skills | Use |
 |-----|---------|-----|
-| 核心技能 | 7 | 日常开发必备 |
-| 进阶技能 | 10 | 深入理解 Rust |
-| 专家技能 | 18 | 疑难杂症专项 |
-| **总计** | **35** | |
+| Core skills | 7 | Daily development requirements |
+| Progressive skills | 10 | Deeper understanding |
+| Expert skills | 18 | Specialized topics |
+| Total | **35** | |
 
 ---
 
-## 核心技能（必学）
+## Core skills (necessary)
 
-| 技能 | 文件 | 描述 |
+| Skills | Documentation | Description |
 |-----|------|------|
-| **rust-skill** | `rust-skill/SKILL.md` | Rust 编程总览与核心概念 |
-| **rust-ownership** | `rust-ownership/SKILL.md` | 所有权与生命周期 |
-| **rust-mutability** | `rust-mutability/SKILL.md` | 可变性深入 |
-| **rust-concurrency** | `rust-concurrency/SKILL.md` | 并发编程基础 |
-| **rust-error** | `rust-error/SKILL.md` | 错误处理基础 |
-| **rust-error-advanced** | `rust-error-advanced/SKILL.md` | 深入错误处理 |
-| **rust-coding** | `rust-coding/SKILL.md` | 编码规范与最佳实践 |
+| **rust-skill** | `rust-skill/SKILL.md` | Rust Programming Overview and Core Concepts |
+| **rust-ownership** | `rust-ownership/SKILL.md` | Ownership and lifetime |
+| **rust-mutability** | `rust-mutability/SKILL.md` | Mutability and interior mutability |
+| **rust-concurrency** | `rust-concurrency/SKILL.md` | Concurrency and async |
+| **rust-error** | `rust-error/SKILL.md` | Error handling basics |
+| **rust-error-advanced** | `rust-error-advanced/SKILL.md` | Advanced error handling |
+| **rust-coding** | `rust-coding/SKILL.md` | Coding norms and best practices |
 
 ---
 
-## 进阶技能
+## Progressive skills
 
-| 技能 | 文件 | 描述 |
+| Skills | Documentation | Description |
 |-----|------|------|
 | **rust-unsafe** | `rust-unsafe/SKILL.md` | unsafe Rust |
-| **rust-anti-pattern** | `rust-anti-pattern/SKILL.md` | 反模式识别与避免 |
-| **rust-performance** | `rust-performance/SKILL.md` | 性能优化（含高级优化） |
-| **rust-web** | `rust-web/SKILL.md` | Web 开发指南 |
-| **rust-learner** | `rust-learner/SKILL.md` | 学习路径与资源 |
-| **rust-ecosystem** | `rust-ecosystem/SKILL.md` | Rust 生态与 crate 选择 |
-| **rust-cache** | `rust-cache/SKILL.md` | Redis 缓存管理 |
-| **rust-auth** | `rust-auth/SKILL.md` | JWT 与 API Key 认证 |
-| **rust-middleware** | `rust-middleware/SKILL.md` | 中间件模式 |
-| **rust-xacml** | `rust-xacml/SKILL.md` | 策略引擎与 RBAC |
+| **rust-anti-pattern** | `rust-anti-pattern/SKILL.md` | Anti-pattern recognition and avoidance |
+| **rust-performance** | `rust-performance/SKILL.md` | Performance optimization (including advanced optimization) |
+| **rust-web** | `rust-web/SKILL.md` | Web Development Guide |
+| **rust-learner** | `rust-learner/SKILL.md` | Learning Paths and Resources |
+| **rust-ecosystem** | `rust-ecosystem/SKILL.md` | Ecosystem and crate selection |
+| **rust-cache** | `rust-cache/SKILL.md` | Redis Cache Management |
+| **rust-auth** | `rust-auth/SKILL.md` | JWT and API Key authentication |
+| **rust-middleware** | `rust-middleware/SKILL.md` | Middleware patterns |
+| **rust-xacml** | `rust-xacml/SKILL.md` | Policy engine and RBAC |
 
 ---
 
-## 专家技能
+## Expert skills
 
-| 技能 | 文件 | 描述 |
+| Skills | Documentation | Description |
 |-----|------|------|
-| **rust-ffi** | `rust-ffi/SKILL.md` | FFI 与 C/C++ 互操作（含 C++ 异常） |
-| **rust-pin** | `rust-pin/SKILL.md` | Pin 与 Unpin 深入理解 |
-| **rust-macro** | `rust-macro/SKILL.md` | 宏编程深入 |
-| **rust-async** | `rust-async/SKILL.md` | async/await 深入 |
-| **rust-async-pattern** | `rust-async-pattern/SKILL.md` | 异步设计模式 |
-| **rust-const** | `rust-const/SKILL.md` | const fn 与编译期计算 |
-| **rust-embedded** | `rust-embedded/SKILL.md` | 嵌入式开发（含 WASM/RISC-V） |
-| **rust-lifetime-complex** | `rust-lifetime-complex/SKILL.md` | 复杂生命周期场景 |
-| **rust-linear-type** | `rust-linear-type/SKILL.md` | 线性类型与资源管理 |
-| **rust-coroutine** | `rust-coroutine/SKILL.md` | 协程与绿色线程 |
-| **rust-ebpf** | `rust-ebpf/SKILL.md` | eBPF 与内核编程 |
-| **rust-gpu** | `rust-gpu/SKILL.md` | GPU 内存与计算 |
-| **rust-skill-index** | `rust-skill-index/SKILL.md` | 技能索引（本文件） |
+| **rust-ffi** | `rust-ffi/SKILL.md` | FFI with C/C++ |
+| **rust-pin** | `rust-pin/SKILL.md` | Pin and Unpin |
+| **rust-macro** | `rust-macro/SKILL.md` | Macros and proc-macros |
+| **rust-async** | `rust-async/SKILL.md` | Async/await deep dive |
+| **rust-async-pattern** | `rust-async-pattern/SKILL.md` | Async patterns |
+| **rust-const** | `rust-const/SKILL.md` | const fn and compilation calculations |
+| **rust-embedded** | `rust-embedded/SKILL.md` | Embedded development (including WASM/RISC-V) |
+| **rust-lifetime-complex** | `rust-lifetime-complex/SKILL.md` | Complex lifetime scenarios |
+| **rust-linear-type** | `rust-linear-type/SKILL.md` | Linear type and resource management |
+| **rust-coroutine** | `rust-coroutine/SKILL.md` | Coroutines and green threads |
+| **rust-ebpf** | `rust-ebpf/SKILL.md` | eBPF and kernel programming |
+| **rust-gpu** | `rust-gpu/SKILL.md` | GPU memory and compute |
+| **rust-skill-index** | `rust-skill-index/SKILL.md` | Skills index |
 
 ---
 
-## 技能分类
+## Skills classification
 
-### 按难度
-
-```
-入门级：rust-skill, rust-ownership, rust-concurrency, rust-error
-进阶级：rust-mutability, rust-unsafe, rust-coding, rust-performance
-高级：rust-async, rust-pin, rust-macro, rust-ffi, rust-embedded
-专家级：rust-ebpf, rust-gpu, rust-coroutine, rust-linear-type
-```
-
-### 按领域
+### By difficulty
 
 ```
-系统编程：rust-unsafe, rust-ffi, rust-embedded, rust-ebpf, rust-gpu
-Web 开发：rust-web, rust-async, rust-middleware, rust-auth, rust-xacml
-并发编程：rust-concurrency, rust-async, rust-coroutine
-性能优化：rust-performance, rust-embedded
-类型系统：rust-ownership, rust-pin, rust-macro, rust-const, rust-lifetime-complex
-错误处理：rust-error, rust-error-advanced
-基础设施：rust-cache, rust-auth, rust-middleware, rust-xacml
+Introduction: rust-skill, rust-ownership, rust-concurrency, rust-error
+Intermediate: rust-mutability, rust-unsafe, rust-coding, rust-performance
+Advanced: rust-async, rust-pin, rust-macro, rust-ffi, rust-embedded
+Expert level: rust-ebpf, rust-gpu, rust-coroutine, rust-linear-type
+```
+
+### By area
+
+```
+System Programming:rust-unsafe, rust-ffi, rust-embedded, rust-ebpf, rust-gpu
+Web Development:rust-web, rust-async, rust-middleware, rust-auth, rust-xacml
+Concurrent programming: rust-concurrency, rust-async, rust-coroutine
+Performance optimization: rust-performance, rust-embedded
+Type system: rust-ownership, rust-pin, rust-macro, rust-const, rust-lifetime-complex
+Error handling: rust-error, rust-error-advanced
+Infrastructure: rust-cache, rust-auth, rust-middleware, rust-xacml
 ```
 
 ---
 
-## 问题速查
+## Quick check
 
-遇到问题时的技能选择：
+Skill selection by problem:
 
-| 问题类型 | 推荐技能 |
+| Type of problem | Recommended skills |
 |---------|---------|
-| 所有权/生命周期错误 | rust-ownership |
-| 借用冲突/可变性 | rust-mutability |
-| Send/Sync 错误 | rust-concurrency |
-| 错误处理策略 | rust-error / rust-error-advanced |
-| 异步代码问题 | rust-async |
-| unsafe 代码审查 | rust-unsafe |
-| FFI 与 C++ 互操作 | rust-ffi |
-| 性能优化 | rust-performance |
-| no_std 开发 | rust-embedded |
-| eBPF 内核编程 | rust-ebpf |
-| GPU 计算 | rust-gpu |
-| 协程实现 | rust-coroutine |
-| 线性类型语义 | rust-linear-type |
-| crate 选择 | rust-ecosystem |
-| 代码风格 | rust-coding |
-| 缓存策略 | rust-cache |
-| 认证授权 | rust-auth |
-| Web 中间件 | rust-middleware |
-| 策略引擎 | rust-xacml |
+| Ownership/lifetime error | rust-ownership |
+| Borrow/mutability conflicts | rust-mutability |
+| Send/Sync errors | rust-concurrency |
+| Error management policy | rust-error / rust-error-advanced |
+| Async code | rust-async |
+| Unsafe code review | rust-unsafe |
+| FFI with C/C++ | rust-ffi |
+| Performance optimization | rust-performance |
+| no_std development | rust-embedded |
+| eBPF kernel programming | rust-ebpf |
+| GPU compute | rust-gpu |
+| Coroutines | rust-coroutine |
+| Linear type syntax | rust-linear-type |
+| Crate selection | rust-ecosystem |
+| Code Style | rust-coding |
+| Cache policy | rust-cache |
+| Authentication/authorization | rust-auth |
+| Web middleware | rust-middleware |
+| Policy engine | rust-xacml |

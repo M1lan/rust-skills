@@ -26,12 +26,12 @@ src/
 ├── main.rs         # Binary entry point
 ├── config.rs       # Configuration
 ├── api/
-�?  ├── mod.rs
-�?  ├── client.rs
-�?  └── server.rs
+│   ├── mod.rs
+│   ├── client.rs
+│   └── server.rs
 ├── models/
-�?  ├── mod.rs
-�?  └── user.rs
+│   ├── mod.rs
+│   └── user.rs
 └── utils/
     ├── mod.rs
     └── helpers.rs
@@ -54,12 +54,12 @@ src/
 ### Boolean Names
 
 ```rust
-// �?Good
+// ✅ Good
 let is_valid = true;
 let has_error = false;
 let can_connect = true;
 
-// �?Bad
+// ❌ Bad
 let valid = true;
 let error = false;
 let connect = true;
@@ -69,19 +69,19 @@ let connect = true;
 
 ```rust
 pub struct User {
-    name: String,
-    age: u32,
+ name: String,
+ age: u32,
 }
 
 impl User {
-    // �?Good: Don't prefix with get_
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    
-    pub fn age(&self) -> u32 {
-        self.age
-    }
+    // ✅ Good: Don't prefix with get_
+ pub fn name(&self) -> &str {
+ &self.name
+ }
+ 
+ pub fn age(&self) -> u32 {
+ self.age
+ }
 }
 ```
 
@@ -90,16 +90,16 @@ impl User {
 ### Use Result for Recoverable Errors
 
 ```rust
-// �?Good
+// ✅ Good
 fn parse_config(path: &Path) -> Result<Config, ConfigError> {
-    let content = std::fs::read_to_string(path)?;
-    serde_json::from_str(&content)?
+ let content = std::fs::read_to_string(path)?;
+ serde_json::from_str(&content)?
 }
 
-// �?Bad: Panics for expected errors
+// ❌ Bad: Panics for expected errors
 fn parse_config(path: &Path) -> Config {
-    std::fs::read_to_string(path)
-        .expect("Failed to read config")
+ std::fs::read_to_string(path)
+ .expect("Failed to read config")
 }
 ```
 
@@ -109,13 +109,13 @@ fn parse_config(path: &Path) -> Config {
 use anyhow::{Context, Result};
 
 fn load_user(id: u32) -> Result<User> {
-    let db = Database::connect()
-        .context("Failed to connect to database")?;
-    
-    let user = db.query_user(id)
-        .with_context(|| format!("Failed to query user {}", id))?;
-    
-    Ok(user)
+ let db = Database::connect()
+ .context("Failed to connect to database")?;
+ 
+ let user = db.query_user(id)
+ .with_context(|| format!("Failed to query user {}", id))?;
+ 
+ Ok(user)
 }
 ```
 
@@ -124,15 +124,15 @@ fn load_user(id: u32) -> Result<User> {
 ### Prefer Borrowing Over Copying
 
 ```rust
-// �?Good
+// ✅ Good
 fn process_name(name: &str) {
-    println!("{}", name);
+ println!("{}", name);
 }
 
-// �?Bad: Unnecessary clone
+// ❌ Bad: Unnecessary clone
 fn process_name(name: &String) {
-    let name = name.clone();  // Wasteful
-    println!("{}", name);
+ let name = name.clone(); // Wasteful
+ println!("{}", name);
 }
 ```
 
@@ -157,8 +157,8 @@ let cell = RefCell::new(value);
 ### Stack vs Heap
 
 ```rust
-// �?Prefer stack for small, fixed-size data
-fn process_point(p: Point) { ... }  // Copy type
+// ✅ Prefer stack for small, fixed-size data
+fn process_point(p: Point) { ... } // Copy type
 
 // Use heap for large data
 fn process_large_data(data: Box<LargeStruct>) { ... }
@@ -170,10 +170,10 @@ fn process_dynamic_data(data: Vec<u8>) { ... }
 ### Avoid Unnecessary Allocations
 
 ```rust
-// �?Bad: Multiple allocations
+// ❌ Bad: Multiple allocations
 let result = format!("{}-{}-{}", a, b, c);
 
-// �?Good: Pre-allocate
+// ✅ Good: Pre-allocate
 let mut result = String::with_capacity(50);
 result.push_str(&a);
 result.push('-');
@@ -204,9 +204,9 @@ result.push_str(&b);
 /// This function panics if the email format is invalid.
 #[derive(Debug)]
 pub struct User {
-    pub id: u32,
-    pub name: String,
-    pub email: String,
+ pub id: u32,
+ pub name: String,
+ pub email: String,
 }
 ```
 
@@ -236,21 +236,21 @@ pub mod transaction;
 ```rust
 #[cfg(test)]
 mod tests {
-    use super::*;
-    
-    // Unit tests
-    #[test]
-    fn test_user_creation() { ... }
-    
-    // Property-based tests
-    proptest! {
-        #[test]
-        fn test_serialization_roundtrip(user in any::<User>()) {
-            let serialized = serde_json::to_string(&user).unwrap();
-            let deserialized: User = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(user, deserialized);
-        }
-    }
+ use super::*;
+ 
+ // Unit tests
+ #[test]
+ fn test_user_creation() { ... }
+ 
+ // Property-based tests
+ proptest! {
+ #[test]
+ fn test_serialization_roundtrip(user in any::<User>()) {
+ let serialized = serde_json::to_string(&user).unwrap();
+ let deserialized: User = serde_json::from_str(&serialized).unwrap();
+ assert_eq!(user, deserialized);
+ }
+ }
 }
 ```
 
@@ -306,11 +306,11 @@ cargo outdated
 ```yaml
 # .github/workflows/ci.yml
 jobs:
-  check:
-    run: |
-      cargo fmt --check
-      cargo clippy -- -D warnings
-      cargo test --lib --bins --doc
+ check:
+ run: |
+ cargo fmt --check
+ cargo clippy -- -D warnings
+ cargo test --lib --bins --doc
 ```
 
 ## Summary Checklist
@@ -325,5 +325,4 @@ jobs:
 - [ ] Keep functions small and focused
 - [ ] Use meaningful names
 - [ ] Follow naming conventions
-
 

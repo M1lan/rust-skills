@@ -1,66 +1,65 @@
 ---
 name: rust-review
-description: "代码质量审查工具"
+description: "Code quality review tool"
 category: code-quality
-triggers: ["review", "clippy", "lint", "审查", "代码质量"]
+triggers: ["review", "clippy", "lint", "Review", "Code quality"]
 related_skills:
-  - rust-coding
-  - rust-anti-pattern
-  - rust-unsafe
+ - rust-coding
+ - rust-anti-pattern
+ - rust-unsafe
 ---
 
-# Rust Review 命令
+# Rust Review command
 
-## 功能说明
+## Functional description
 
-对 Rust 代码进行质量审查，检测：
-- 代码风格问题
-- 潜在的 bug
-- 性能隐患
-- 违反最佳实践
+Quality review of Rust code. Test:
+- Code style problem.
+- Potential bug
+- Performance hazard.
+- Violation of best practice
 
-## 使用方法
+## Use method
 
 ```bash
-# 审查整个项目
+# Review of the whole project
 ./scripts/review.sh
 
-# 审查指定文件
+# Review of designation documents
 ./scripts/review.sh src/main.rs
 
-# 仅运行 Clippy
+# Run only Clippy
 cargo clippy --all-targets
 ```
 
-## 问题分类
+## Problem classification
 
-| 严重级别 | 说明 | 处理建议 |
+| Serious level | Annotations | Treatment of recommendations |
 |---------|------|---------|
-| 🔴 Error | 编译错误 | 立即修复 |
-| 🟠 Warning | 潜在问题 | 优先处理 |
-| 🟡 Advice | 改进建议 | 按需优化 |
+| 🔴 Error | Compiler error | Fix immediately |
+| 🟠 Warning | Potential problems | Prioritize |
+| 🟡 Advice | Suggested improvements | Optimize if needed |
 
-## 常见问题修复
+## Fixes for common problems
 
-### Clone 优化
+### Clone optimization
 ```rust
-// ❌ 避免：不必要的 clone
+// ❌ Avoid: unnecessary clone
 let data = values.clone();
 
-// ✅ 推荐：借用或 Rc/Arc
+// ✅ Recommendation: borrow or use Rc/Arc
 let data = &values;
 ```
 
-### Unwrap 使用
+### Unwrap
 ```rust
-// ❌ 避免：unwrap panic 风险
+// ❌ Avoid: unwrap panic risk
 let value = map.get(key).unwrap();
 
-// ✅ 推荐：模式匹配或 unwrap_or
+// ✅ Recommendation: pattern match or use unwrap_or
 let value = map.get(key).unwrap_or(&default);
 ```
 
-## 关联技能
-- `rust-coding` - 编码规范
-- `rust-anti-pattern` - 反模式识别
-
+## Related skills
+- Coding standards
+- Anti-pattern recognition

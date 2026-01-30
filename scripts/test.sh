@@ -1,10 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-# Rust Test Runner
-# Run unit tests, integration tests, and doc tests
-
-echo "🧪 Running Rust tests..."
+echo "📊 Running Rust tests..."
 
 # Get available CPU threads for parallel testing
 if command -v nproc &> /dev/null; then
@@ -16,7 +13,7 @@ else
 fi
 
 # Run all tests in parallel
-echo "🚀 Running tests in parallel (${THREADS} threads)..."
+echo "🏃‍♀️‍➡️ Running tests in parallel (${THREADS} threads)..."
 cargo test --workspace --all-targets -- --test-threads="$THREADS" "$@"
 
 echo "✅ All tests passed!"

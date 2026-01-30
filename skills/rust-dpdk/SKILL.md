@@ -1,42 +1,42 @@
 ---
 name: rust-dpdk
-description: "用户态网络专家。处理 DPDK, 用户态驱动, 高性能网络, packet processing, 零拷贝, RSS 负载均衡"
+description: "User-space networking expert. Handles DPDK, user-space drivers, high-performance networking, packet processing, zero-copy, RSS load balancing"
 globs: ["**/*.rs"]
 ---
 
-# 用户态网络 (DPDK)
+# User-Space Networking (DPDK)
 
-## 核心问题
+## Core issues
 
-**如何实现百万级 PPS 的高性能网络数据包处理？**
+**Key question:** How do we process millions of packets per second (PPS)?
 
-传统内核网络栈有太多上下文切换和内存拷贝开销。
+Traditional kernel network stacks incur heavy context switching and memory-copy overhead.
 
 ---
 
-## DPDK vs 内核网络栈
+## DPDK vs kernel network stack
 
-| 特性 | 内核网络栈 | DPDK |
+| Feature | Kernel network stack | DPDK |
 |-----|----------|------|
-| 上下文切换 | 每次包都切换 | 轮询模式，无切换 |
-| 内存拷贝 | 多次拷贝 | 零拷贝 |
-| 中断 | 频繁中断 | 轮询 (poll mode driver) |
-| 延迟 | 较高 | 微秒级 |
-| 吞吐量 | 万级 PPS | 百万级 PPS |
-| CPU 利用率 | 较低但有开销 | 高但高效 |
+| Context switching | Switch per packet | Poll mode, no switches |
+| Memory copies | Multiple copies | Zero-copy |
+| Interrupts | Frequent interrupts | Poll mode driver |
+| Latency | Higher | Microseconds |
+| Throughput | Tens of thousands PPS | Millions PPS |
+| CPU utilization | Lower but with overhead | High but efficient |
 
 ---
 
-## 核心组件
+## Core components
 
 ```rust
-// DPDK 核心结构
+// DPDK core structures
 struct DpdkContext {
-    memory_pool: Mempool,        // 内存池
-    ports: Vec<Port>,            // 网卡端口
-    rx_queues: Vec<RxQueue>,     // 接收队列
-    tx_queues: Vec<TxQueue>,     // 发送队列
-    cpu_cores: Vec<Core>,        // CPU 核心分配
+    memory_pool: Mempool,        // Memory pool
+    ports: Vec<Port>,            // NIC ports
+    rx_queues: Vec<RxQueue>,     // Receive queues
+    tx_queues: Vec<TxQueue>,     // Transmit queues
+    cpu_cores: Vec<Core>,        // CPU core assignment
 }
 
 struct Port {
@@ -56,27 +56,27 @@ struct Mempool {
 
 ---
 
-## 内存池管理
+## Memory pool management
 
 ```rust
-// 创建 DPDK 内存池
+// Create a DPDK memory pool
 fn create_mempool() -> Result<Mempool, DpdkError> {
     let mempool = unsafe {
         rte_mempool_create(
             b"packet_pool\0".as_ptr() as *const c_char,
-            NUM_BUFFERS as u32,        // 缓冲区数量
-            BUFFER_SIZE as u16,        // 每个缓冲区大小
-            CACHE_SIZE as u32,         // CPU 缓存大小
-            0,                         // 私有数据大小
-            Some(rte_pktmbuf_pool_init), // 初始化函数
-            std::ptr::null(),          // 初始化参数
-            Some(rte_pktmbuf_init),    // 对象初始化函数
-            std::ptr::null(),          // 对象参数
-            rte_socket_id() as i32,    // 内存所在 Socket
-            0,                         // 标志位
+            NUM_BUFFERS as u32,          // Number of buffers
+            BUFFER_SIZE as u16,          // Buffer size
+            CACHE_SIZE as u32,           // CPU cache size
+            0,                           // Private data size
+            Some(rte_pktmbuf_pool_init), // Pool init function
+            std::ptr::null(),            // Pool init args
+            Some(rte_pktmbuf_init),      // Object init function
+            std::ptr::null(),            // Object init args
+            rte_socket_id() as i32,      // NUMA socket
+            0,                           // Flags
         )
     };
-    
+
     if mempool.is_null() {
         Err(DpdkError::MempoolCreateFailed)
     } else {
@@ -84,7 +84,7 @@ fn create_mempool() -> Result<Mempool, DpdkError> {
     }
 }
 
-// 分配缓冲区
+// Allocate a buffer
 fn alloc_mbuf(mempool: &Mempool) -> Option<*mut rte_mbuf> {
     unsafe {
         let mbuf = rte_pktmbuf_alloc(mempool.inner);
@@ -99,10 +99,10 @@ fn alloc_mbuf(mempool: &Mempool) -> Option<*mut rte_mbuf> {
 
 ---
 
-## 零拷贝接收
+## Zero-copy receive
 
 ```rust
-// 零拷贝接收数据包
+// Receive packets with zero-copy
 fn process_packets(
     port_id: u16,
     queue_id: u16,
@@ -116,38 +116,32 @@ fn process_packets(
             MAX_BURST_SIZE as u16,
         )
     };
-    
-    // 直接处理 mbuf，不需要拷贝
+
+    // Process mbufs directly without copying
     for i in 0..num_received {
         let mbuf = bufs[i];
-        
-        // 访问数据（零拷贝）
-        let data_ptr = unsafe {
-            rte_pktmbuf_mtod(mbuf, *const u8)
-        };
-        let data_len = unsafe {
-            rte_pktmbuf_pkt_len(mbuf)
-        };
-        
-        // 处理数据包
+
+        // Access data (zero-copy)
+        let data_ptr = unsafe { rte_pktmbuf_mtod(mbuf, *const u8) };
+        let data_len = unsafe { rte_pktmbuf_pkt_len(mbuf) };
+
+        // Process the packet
         process_packet(data_ptr, data_len);
-        
-        // 释放 mbuf 回内存池
-        unsafe {
-            rte_pktmbuf_free(mbuf);
-        }
+
+        // Free mbuf back to the pool
+        unsafe { rte_pktmbuf_free(mbuf); }
     }
-    
+
     num_received
 }
 ```
 
 ---
 
-## 批量发送
+## Batch transmit
 
 ```rust
-// 批量发送数据包
+// Send packets in batch
 fn transmit_packets(
     port_id: u16,
     queue_id: u16,
@@ -157,7 +151,7 @@ fn transmit_packets(
         .iter()
         .map(|p| p.to_mbuf())
         .collect();
-    
+
     let sent = unsafe {
         rte_eth_tx_burst(
             port_id,
@@ -166,83 +160,78 @@ fn transmit_packets(
             mbufs.len() as u16,
         )
     };
-    
-    // 释放未发送的 mbuf
+
+    // Free unsent mbufs
     for i in sent..mbufs.len() {
-        unsafe {
-            rte_pktmbuf_free(mbufs[i]);
-        }
+        unsafe { rte_pktmbuf_free(mbufs[i]); }
     }
-    
+
     sent
 }
 ```
 
 ---
 
-## RSS 负载均衡
+## RSS load balancing
 
 ```rust
-// 配置 RSS (Receive Side Scaling)
+// Configure RSS (Receive Side Scaling)
 fn configure_rss(port_id: u16) -> Result<(), DpdkError> {
     let mut port_info: rte_eth_dev_info = unsafe { std::mem::zeroed() };
     unsafe {
         rte_eth_dev_info_get(port_id, &mut port_info);
     }
-    
-    // 配置 RSS 哈希
+
+    // Configure RSS hash
     let mut rss_conf: rte_eth_rss_conf = unsafe { std::mem::zeroed() };
     rss_conf.rss_key_len = 40;
     rss_conf.rss_hf = RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP | RTE_ETH_RSS_IPV4;
-    
+
     unsafe {
-        let ret = rte_eth_dev_rss_hash_conf_update(
-            port_id,
-            &rss_conf,
-        );
+        let ret = rte_eth_dev_rss_hash_conf_update(port_id, &rss_conf);
         if ret < 0 {
             return Err(DpdkError::RssConfigFailed);
         }
     }
-    
+
     Ok(())
 }
 
-// 根据哈希值分配队列
+// Pick queue by hash
 fn get_queue_by_hash(hash: u32, num_queues: u16) -> u16 {
-    // 使用简单的取模分发
+    // Simple modulo distribution
     (hash % num_queues as u32) as u16
 }
 ```
 
 ---
 
-## 多队列配置
+## Multi-queue configuration
 
 ```rust
-// 配置多队列
+// Configure multiple queues
 fn configure_multi_queue(port_id: u16, num_queues: u16) -> Result<(), DpdkError> {
     let mut port_conf: rte_eth_conf = unsafe { std::mem::zeroed() };
     port_conf.rxmode.split_hdr_size = 0;
     port_conf.rxmode.mq_mode = rte_eth_mq_mode::ETH_MQ_RX_RSS;
     port_conf.txmode.mq_mode = rte_eth_mq_mode::ETH_MQ_TX_NONE;
-    
-    // 配置 RX 队列
+
+    // RX queue config
     let mut rx_conf: rte_eth_rxconf = unsafe { std::mem::zeroed() };
     rx_conf.rx_free_thresh = 32;
     rx_conf.rx_drop_en = 0;
-    
-    // 配置 TX 队列
+
+    // TX queue config
     let mut tx_conf: rte_eth_txconf = unsafe { std::mem::zeroed() };
     tx_conf.tx_free_thresh = 32;
-    
-    // 分配 RX 队列
+
+    // Setup RX queues
     for queue in 0..num_queues {
         unsafe {
             let ret = rte_eth_rx_queue_setup(
                 port_id,
                 queue,
-                1024, // 队列深度
+                1024, // Queue depth
                 rte_socket_id() as u32,
                 &rx_conf,
                 mempool.inner,
@@ -252,8 +241,8 @@ fn configure_multi_queue(port_id: u16, num_queues: u16) -> Result<(), DpdkError>
             }
         }
     }
-    
-    // 分配 TX 队列
+
+    // Setup TX queues
     for queue in 0..num_queues {
         unsafe {
             let ret = rte_eth_tx_queue_setup(
@@ -268,14 +257,14 @@ fn configure_multi_queue(port_id: u16, num_queues: u16) -> Result<(), DpdkError>
             }
         }
     }
-    
+
     Ok(())
 }
 ```
 
 ---
 
-## CPU 亲和性
+## CPU affinity
 
 ```rust
 use std::os::raw::c_int;
@@ -283,25 +272,25 @@ use std::thread;
 
 fn set_cpu_affinity(core_id: u32) -> Result<(), DpdkError> {
     let mut cpuset: cpu_set_t = unsafe { std::mem::zeroed() };
-    
+
     unsafe {
         CPU_SET(core_id as usize, &mut cpuset);
-        
+
         let ret = pthread_setaffinity_np(
             pthread_self(),
             std::mem::size_of::<cpu_set_t>(),
             &cpuset,
         );
-        
+
         if ret != 0 {
             return Err(DpdkError::AffinitySetFailed);
         }
     }
-    
+
     Ok(())
 }
 
-// 为每个 RX 队列分配专用核心
+// Assign a dedicated core to each RX queue
 fn allocate_cores_for_queues(num_queues: u16) {
     for queue in 0..num_queues {
         thread::spawn(move || {
@@ -314,25 +303,24 @@ fn allocate_cores_for_queues(num_queues: u16) {
 
 ---
 
-## 性能优化
+## Performance optimization
 
-| 优化点 | 方法 |
+| Optimization | Method |
 |-------|------|
-| 内存对齐 | 缓存行对齐 (64 字节) |
-| 无锁队列 | 使用 SPSC 队列 |
-| 批处理 | 批量收发减少系统调用 |
-| CPU 亲和性 | 核心绑定减少上下文切换 |
-| Hugepages | 2MB/1GB 大页减少 TLB miss |
+| Memory alignment | Cache-line alignment (64 bytes) |
+| Lock-free queues | Use SPSC queues |
+| Batching | Batch send/receive to reduce syscalls |
+| CPU affinity | Core pinning to reduce context switches |
+| Hugepages | 2MB/1GB pages reduce TLB misses |
 
 ---
 
-## 与其他技能关联
+## Related skills
 
 ```
 rust-dpdk
     │
-    ├─► rust-performance → 性能优化
-    ├─► rust-embedded → no_std 环境
-    └─► rust-concurrency → 并发模型
+    ├─► rust-performance → performance optimization
+    ├─► rust-embedded → no_std environments
+    └─► rust-concurrency → concurrency model
 ```
-

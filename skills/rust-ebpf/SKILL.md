@@ -1,35 +1,35 @@
 ---
 name: rust-ebpf
-description: "eBPF 与内核模块专家。处理 eBPF program, kernel module, map, tail call, perf event, 跟踪, 内核探针, 性能分析"
+description: "eBPF and kernel programming: programs, maps, tail calls, perf events, probes, performance analysis"
 globs: ["**/*.rs"]
 ---
 
-# eBPF 与内核编程
+# eBPF and Kernel Programming
 
-## 核心问题
+## Core issues
 
-**如何在不修改内核的情况下安全地扩展内核功能？**
+**Key question:** How can we safely extend kernel behavior without modifying kernel code?
 
-eBPF 提供在内核中安全执行用户态代码的能力。
+eBPF lets you run user-space logic safely inside the kernel.
 
 ---
 
-## eBPF vs 内核模块
+## eBPF vs kernel modules
 
-| 特性 | eBPF | 内核模块 |
+| Feature | eBPF | Kernel modules |
 |-----|------|---------|
-| 安全验证 | 编译时验证 | 需要手动审查 |
-| 稳定性 | 稳定的 API | API 可能变化 |
-| 性能 | 即时 JIT | 高但有风险 |
-| 崩溃风险 | 有限 | 可能崩溃内核 |
-| 语言支持 | C, Rust | C, Rust |
+| Safety verification | Verified at load time | Manual review required |
+| Stability | Stable API | API may change |
+| Performance | JIT-compiled | High but risky |
+| Crash risk | Limited | Can crash the kernel |
+| Language support | C, Rust | C, Rust |
 
 ---
 
-## Aya 库
+## Aya library
 
 ```rust
-// 使用 aya 创建 eBPF 程序
+// Create eBPF programs with aya
 use aya::{maps::Map, programs::Xdp, Bpf};
 use aya::maps::ArrayMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -50,14 +50,14 @@ fn panic(_info: &std::panic::PanicInfo) -> ! {
 
 ---
 
-## eBPF Map
+## eBPF maps
 
 ```rust
-// eBPF 共享数据映射
+// eBPF shared data maps
 use aya::maps::HashMap;
 use aya::util::online_cpus;
 
-// 哈希映射
+// Hash map
 let mut hash_map = HashMap::try_from(
     (prog.fd().as_ref(), "packet_counts")
 )?;
@@ -66,15 +66,15 @@ for cpu in online_cpus()? {
     hash_map.insert(cpu as u32, 0u64, 0)?;
 }
 
-// 数组映射
+// Array map
 use aya::maps::Array;
 let mut array = Array::try_from(
     (prog.fd().as_ref(), "config")
 )?;
 
-array.insert(0, 64u32, 0)?; // 批量大小
+array.insert(0, 64u32, 0)?; // Batch size
 
-// PERCPU 映射 - 每 CPU 计数器
+// Per-CPU map
 use aya::maps::PerCpuHashMap;
 let mut per_cpu = PerCpuHashMap::try_from(
     (prog.fd().as_ref(), "per_cpu_stats")
@@ -87,10 +87,10 @@ for cpu in online_cpus()? {
 
 ---
 
-## XDP 程序
+## XDP program
 
 ```rust
-// XDP (Express Data Path) 程序
+// XDP (Express Data Path) program
 use aya::programs::XdpContext;
 use aya_bpf::helpers::bpf_redirect;
 use aya_bpf::macros::xdp;
@@ -99,11 +99,11 @@ use aya_bpf::programs::XdpProgram;
 #[xdp]
 pub fn xdp_packet_counter(ctx: XdpContext) -> u32 {
     let _ = ctx;
-    
-    // 计数
+
+    // Count packets
     PACKET_COUNT.fetch_add(1, Ordering::SeqCst);
-    
-    // 返回原始接口
+
+    // Redirect to original interface
     bpf_redirect(ctx.ifindex(), 0)
 }
 ```
@@ -113,7 +113,7 @@ pub fn xdp_packet_counter(ctx: XdpContext) -> u32 {
 ## Tracepoint
 
 ```rust
-// 跟踪点程序
+// Tracepoint program
 use aya_bpf::macros::tracepoint;
 use aya_bpf::programs::TracepointContext;
 
@@ -129,7 +129,7 @@ pub fn trace_sys_enter_open(ctx: TracepointContext) -> u32 {
 ## kprobe/kretprobe
 
 ```rust
-// 内核探针
+// Kernel probes
 use aya_bpf::macros::{kprobe, kretprobe};
 use aya_bpf::programs::KprobeContext;
 
@@ -146,64 +146,64 @@ pub fn tcp_v4_connect_exit(_ctx: KprobeContext) -> u32 {
 
 ---
 
-## 用户态加载器
+## User-space loader
 
 ```rust
-// 完整的 eBPF 加载器
+// Full eBPF loader
 use aya::Bpf;
 use aya::maps::HashMap;
 use std::net::Ipv4Addr;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    // 加载 eBPF 程序
+    // Load eBPF program
     let mut bpf = Bpf::load("ebpf.o")?;
-    
-    // 获取程序
+
+    // Get program
     let program: &mut Xdp = bpf.program_mut("xdp_packet_counter")
         .unwrap()
         .try_into()?;
     program.load()?;
     program.attach("eth0", XdpFlags::default())?;
-    
-    // 创建映射
+
+    // Create map
     let mut blocked_ips: HashMap<_, Ipv4Addr, u8> = HashMap::try_from(
         (bpf.map("blocked_ips")?.fd().as_ref(), "blocked_ips")
     )?;
-    
+
     blocked_ips.insert(Ipv4Addr::new(1, 2, 3, 4), 1, 0)?;
-    
-    // 持续监控
+
+    // Continuous monitoring
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        // 读取统计数据
+        // Read stats
     }
 }
 ```
 
 ---
 
-## Tail Call
+## Tail calls
 
 ```rust
-// 尾调用 - 链式程序调用
+// Tail call - chained program invocation
 
-// 程序 1
+// Program 1
 #[xdp(name = "packet_parser")]
 pub fn packet_parser(ctx: XdpContext) -> u32 {
     let _ = ctx;
-    // 解析包头，决定下一个程序
+    // Parse headers, decide next program
     aya_bpf::helpers::bpf_tail_call(ctx, &JUMP_TABLE, 0)
 }
 
-// 程序 2
+// Program 2
 #[xdp(name = "packet_filter")]
 pub fn packet_filter(ctx: XdpContext) -> u32 {
     let _ = ctx;
     aya_bpf::programs::XdpAction::Pass.as_u32()
 }
 
-// 用户态设置
+// User-space setup
 let mut jump_table: ProgramArray = ProgramArray::try_from(
     (bpf.map("jump_table")?.fd().as_ref(), "jump_table")
 )?;
@@ -213,25 +213,23 @@ jump_table.set(0, bpf.program("packet_filter").unwrap().fd(), 0)?;
 
 ---
 
-## 性能优化
+## Performance optimization
 
-| 优化点 | 方法 |
+| Optimization | Method |
 |-------|------|
-| Map 访问 | 批量读取，减少系统调用 |
-| 尾调用 | 控制链长度，避免过多跳转 |
-| 数据结构 | 使用数组而非哈希表 |
-| 锁竞争 | 使用 PerCPU map |
+| Map access | Batch reads, fewer syscalls |
+| Tail calls | Limit chain length |
+| Data structures | Prefer arrays over hash maps |
+| Lock contention | Use PerCPU maps |
 
 ---
 
-## 与其他技能关联
+## Related skills
 
 ```
 rust-ebpf
     │
-    ├─► rust-embedded → no_std, 内核接口
-    ├─► rust-performance → 性能分析
-    └─► rust-unsafe → 底层内存操作
+    ├─► rust-embedded → no_std, kernel interfaces
+    ├─► rust-performance → profiling
+    └─► rust-unsafe → low-level memory operations
 ```
-
-

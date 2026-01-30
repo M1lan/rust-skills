@@ -1,165 +1,164 @@
 ---
 name: rust-learner
-description: "Rust 学习与生态追踪专家。处理新版本特性、crate 更新、最佳实践演进、RFC、每周新闻等问题。触发词：latest version, what's new, Rust 版本, 新特性, update, upgrade, rfc, 每周新闻, 学习, 教程"
+description: "Learning and ecosystem guide: new versions, crate updates, best practices, RFCs, and weekly news. Triggers: latest version, what's new, Rust version, new features, update, upgrade, RFC, weekly news, learning"
 globs: ["**/*.toml", "**/Cargo.lock"]
 ---
 
-# Rust 学习与生态追踪
+# Rust Learning and Ecosystem Tracking
 
-## 核心问题
+## Core issues
 
-**如何跟上 Rust 的发展节奏？**
+**Key question:** How do we keep up with Rust's pace?
 
-Rust 每 6 周发布一个新版本，生态系统活跃。保持更新但不盲目追新。
+Rust publishes a new release every six weeks. The ecosystem moves quickly.
 
 ---
 
-## 版本更新策略
+## Version update policy
 
-### 稳定版更新
+### Stable Update
 
 ```bash
-# 检查当前版本
+# Check current version
 rustc --version
 
-# 更新 Rust
+# Update Rust
 rustup update stable
 
-# 查看更新内容
+# View changelog
 rustup changelog stable
 ```
 
-### 何时升级
+### When should you update?
 
-| 场景 | 建议 |
+| Scenario | Recommendation |
 |-----|------|
-| 新项目 | 用最新稳定版 |
-| 生产项目 | 跟随 6 周周期更新 |
-| 库项目 | 考虑 MSRV 策略 |
+| New projects | Use the latest stable |
+| Production | Update on the 6-week cycle (after testing) |
+| Libraries | Follow an MSRV policy |
 
 ### MSRV (Minimum Supported Rust Version)
 
 ```toml
 [package]
-rust-version = "1.70"  # 声明最低支持版本
+rust-version = "1.70" # Declaration Minimum Supported Version
 
 [dependencies]
-# 对 MSRV 敏感的依赖要谨慎
+# MSRV changes require care across your dependency graph.
 serde = { version = "1.0", default-features = false }
 ```
 
 ---
 
-## 新特性学习路径
+## Learning path for new features
 
-### 2024 Edition 重要特性
+### 2024 Edition Important Features
 
-| 特性 | 稳定版本 | 实用度 |
+| Feature | Stable version | Practicality |
 |-----|---------|-------|
-| `gen blocks` | nightly | ⭐ 实验性 |
-| `async drop` | nightly | ⭐ 实验性 |
-| `inline const` | 1.79+ | ⭐⭐ 生产可用 |
-| `never type` 改进 | 1.82+ | ⭐⭐⭐ 常用 |
+| `gen blocks` | nightly | ⭐ Experimental |
+| `async drop` | nightly | ⭐ Experimental |
+| `inline const` | 1.79+ | ✅ Stable |
+| `never type` improvements | 1.82+ | ⭐⭐⭐ Common |
 
-### 新手到进阶路线
+### Learning progression
 
 ```
-基础 → 所有权、生命周期、借用检查
-    ↓
-中级 → 特征对象、泛型、闭包
-    ↓
-并发 → async/await、线程、通道
-    ↓
-高级 → unsafe、FFI、性能优化
-    ↓
-专家 → 宏、类型系统、设计模式
+Foundation → Ownership, borrowing, lifetimes
+ ↓
+Intermediate → Trait objects, enums, error handling
+ ↓
+Concurrency → async/await, threads, channels
+ ↓
+Advanced → unsafe, FFI, performance
+ ↓
+Expert → macros, type system, API design
 ```
 
 ---
 
-## 追踪信息源
+## Stay up to date
 
-### 官方渠道
+### Official channels
 
-| 渠道 | 内容 | 频率 |
+| Channel | Contents | Frequency |
 |-----|------|-----|
-| [This Week in Rust](https://this-week-in-rust.org/) | 周报、RFC、博客 | 每周 |
-| [Rust Blog](https://blog.rust-lang.org/) | 重大发布、深度文章 | 不定期 |
-| [Rust RFCs](https://github.com/rust-lang/rfcs) | 设计讨论 | 持续 |
-| [Release Notes](https://github.com/rust-lang/rust/blob/master/RELEASES.md) | 版本变更 | 每 6 周 |
+| [This Week in Rust](https://this-week-in-rust.org/) | Weekly news, RFCs, blogs | Weekly |
+| [Rust Blog](https://blog.rust-lang.org/) | Major announcements, deep dives | Occasional |
+| [Rust RFCs](https://github.com/rust-lang/rfcs) | Design discussions | Ongoing |
+| [Release Notes](https://github.com/rust-lang/rust/blob/master/RELEASES.md) | Version changes | Every 6 weeks |
 
-### 社区资源
+### Community resources
 
-| 资源 | 内容 |
+| Resources | Contents |
 |-----|------|
-| [docs.rs](https://docs.rs/) | 文档搜索 |
-| [crates.io](https://crates.io/) | 包搜索 |
-| [lib.rs](https://lib.rs/) | 找替代 crate |
-| [Rust Analyzer](https://rust-analyzer.github.io/) | IDE 插件 |
+| [docs.rs](https://docs.rs/) | API docs search |
+| [crates.io](https://crates.io/) | Package registry |
+| [lib.rs](https://lib.rs/) | Curated crate discovery |
+| [Rust Analyzer](https://rust-analyzer.github.io/) | IDE plugin |
 
 ---
 
-## 依赖更新管理
+## Dependency update management
 
-### 常规更新
+### General update
 
 ```bash
-# 检查可更新依赖
+# Check dependency updates
 cargo outdated
 
-# 更新次要版本
+# Update minor versions
 cargo update
 
-# 强制更新所有
+# Force minimal versions (nightly cargo feature)
 cargo update -Z direct-minimal-versions
 ```
 
-### 安全审计
+### Security audit
 
 ```bash
-# 检查已知漏洞
+# Check known loopholes
 cargo audit
 
-# 检查依赖许可证
+# Check for licences.
 cargo deny check licenses
 ```
 
 ---
 
-## 我的更新策略
+## My Update Policy
 
-### 每季度一次
+### Quarterly
 
-- [ ] 升级到最新 stable
-- [ ] 运行 `cargo outdated`
-- [ ] 运行 `cargo audit`
-- [ ] 检查依赖的 breaking changes
-- [ ] 评估新特性是否值得采用
+- [ ] Upgrade to latest status
+- [ ] Run `cargo outdated`
+- [ ] Run `cargo audit`
+- [ ] Check dependent breaking changes
+- [ ] Assess whether new features are worth adopting
 
-### 每年一次
+### Once a year
 
-- [ ] 考虑 edition 升级
-- [ ] 重构使用旧模式代码
-- [ ] 评估 MSRV 策略
-- [ ] 更新开发工具链
+- [ ] Consider upgrading
+- [ ] Reconstruct the old mode code
+- [ ] Assessment of MSRV strategies
+- [ ] Update the development tool chain
 
 ---
 
-## 学习资源推荐
+## Recommendations for learning resources
 
-### 入门
+### Introduction
 
-- [The Rust Programming Language](https://doc.rust-lang.org/book/) - 官方书
-- [Rust by Example](https://doc.rust-lang.org/rust-by-example/) - 示例驱动
+- The Rust Programming Language — official book
+- Rust by Example — example-driven tutorial
 
-### 进阶
+### Progress
 
-- [The Rust Reference](https://doc.rust-lang.org/reference/) - 语言参考
-- [Rust Nomicon](https://doc.rust-lang.org/nomicon/) - unsafe 指南
-- [Effective Rust](https://www.lurklurk.org/effective-rust/) - 最佳实践
+- The Rust Reference — language reference
+- The Rustonomicon — unsafe Rust guide
+- Effective Rust — best practices
 
-### 实战
+### Actual
 
-- [Exercism Rust Track](https://exercism.org/tracks/rust) - 练习题
-- [Rust by Practice](https://practice.rs/) - 实践题目
-
+- Exercism Rust Track
+- Rust by Practice

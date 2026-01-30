@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Rust Code Formatter
-# Check and format code according to rustfmt
-
 echo "📐 Checking code format..."
 
 # Check all targets (lib, bins, tests, examples)

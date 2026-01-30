@@ -1,33 +1,33 @@
 ---
 name: rust-unsafe
-description: "不安全代码与 FFI 专家。处理 unsafe, raw pointer, FFI, extern, transmute, *mut, *const, union, #[repr(C)], libc, MaybeUninit, NonNull, SAFETY comment, soundness, undefined behavior, UB, 安全抽象, 裸指针, 外部函数接口, 内存布局, 未定义行为"
+description: "Unsafe code and FFI expert. Covers unsafe, raw pointers, FFI, extern, transmute, *mut/*const, union, #[repr(C)], libc, MaybeUninit, NonNull, SAFETY comments, soundness, UB, memory layout"
 globs: ["**/*.rs"]
 ---
 
-# 不安全代码与 FFI
+# Unsafe Code and FFI
 
-## 核心问题
+## Core issues
 
-**什么时候可以用 unsafe，怎么用才安全？**
+**Key question:** When can we use unsafe, and how do we keep it safe?
 
- unsafe 是必要的，但必须谨慎使用。
+Unsafe is necessary, but must be used with care.
 
 ---
 
-## 何时可以用 Unsafe
+## When can we use unsafe?
 
-| 使用场景 | 示例 | 是否正当 |
+| Use case | Example | Allowed |
 |---------|-----|---------|
-| FFI 调用 C | `extern "C" { fn libc_malloc(size: usize) -> *mut c_void; }` | ✅ |
-| 实现底层抽象 | `Vec`, `Arc` 的内部实现 | ✅ |
-| 性能优化（已测量） | 热点代码测出瓶颈 | ⚠️ 需验证 |
-| 逃避借用检查 | 不知道为什么要用 | ❌ |
+| FFI calls to C | `extern "C" { fn libc_malloc(size: usize) -> *mut c_void; }` | ✅ |
+| Low-level abstractions | `Vec`, `Arc` internals | ✅ |
+| Performance optimization (measured) | Hot paths with evidence | ⚠️ Validate carefully |
+| Avoiding borrow checker | "Because it's annoying" | ❌ |
 
 ---
 
-## SAFETY 注释要求
+## SAFETY comment requirements
 
-**每个 unsafe 块必须包含 SAFETY 注释：**
+**Every unsafe block must include SAFETY notes:**
 
 ```rust
 // SAFETY: ptr must be non-null and properly aligned.
@@ -35,7 +35,7 @@ globs: ["**/*.rs"]
 unsafe { *ptr = value; }
 
 /// # Safety
-/// 
+///
 /// * `ptr` must be properly aligned and not null
 /// * `ptr` must point to initialized memory of type T
 /// * The memory must not be accessed after this function returns
@@ -44,121 +44,121 @@ pub unsafe fn write(ptr: *mut T, value: &T) { ... }
 
 ---
 
-## 47 条 Unsafe 规则速查
+## Unsafe rules quick check (47)
 
-### 通用原则 (3条)
+### General principles (3)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| G-01 | 不要用 unsafe 逃避编译器安全检查 |
-| G-02 | 不要盲目为性能使用 unsafe |
-| G-03 | 不要为类型/方法创建名为 "Unsafe" 的别名 |
+| G-01 | Don't use unsafe to bypass the compiler's safety checks |
+| G-02 | Don't use unsafe blindly for performance |
+| G-03 | Don't create aliases named "Unsafe" for types/methods |
 
-### 内存布局 (6条)
+### Memory layout (6)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| M-01 | 为 struct/tuple/enum 选择合适的内存布局 |
-| M-02 | 不要修改其他进程的内存变量 |
-| M-03 | 不要让 String/Vec 自动释放其他进程的内存 |
-| M-04 | 优先使用 C-API 或 Syscalls 的可重入版本 |
-| M-05 | 用第三方 crate 处理位域 |
-| M-06 | 用 `MaybeUninit<T>` 处理未初始化内存 |
+| M-01 | Choose appropriate layout for struct/tuple/enum |
+| M-02 | Don't modify memory owned by other processes |
+| M-03 | Don't let String/Vec free memory owned elsewhere |
+| M-04 | Prefer re-entrant C APIs or syscalls |
+| M-05 | Use third-party crates for bitfields |
+| M-06 | Use `MaybeUninit<T>` for uninitialized memory |
 
-### 原始指针 (6条)
+### Raw pointers (6)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| P-01 | 不要跨线程共享原始指针 |
-| P-02 | 优先使用 `NonNull<T>` 而非 `*mut T` |
-| P-03 | 用 `PhantomData<T>` 标记方差和所有权 |
-| P-04 | 不要解引用强制转换为对齐错误的类型 |
-| P-05 | 不要手动将不可变指针转为可变指针 |
-| P-06 | 用 `ptr::cast` 而非 `as` 做指针转换 |
+| P-01 | Don't share raw pointers across threads |
+| P-02 | Prefer `NonNull<T>` over `*mut T` |
+| P-03 | Use `PhantomData<T>` to express ownership/variance |
+| P-04 | Don't deref casts to misaligned types |
+| P-05 | Don't cast const to mut without guarantees |
+| P-06 | Prefer `ptr::cast` over `as` |
 
-### 联合 (2条)
+### Unions (2)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| U-01 | 除 C 互操作外避免使用 union |
-| U-02 | 不要在不同生命周期使用 union 变体 |
+| U-01 | Avoid union except for C interop |
+| U-02 | Don't use union variants across different lifetimes |
 
-### FFI (18条)
+### FFI (18)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| F-01 | 避免直接向 C 传递字符串 |
-| F-02 | 仔细阅读 `std::ffi` 类型的文档 |
-| F-03 | 为包装的 C 指针实现 Drop |
-| F-04 | 处理跨越 FFI 边界的 panic |
-| F-05 | 使用 `std` 或 `libc` 的可移植类型别名 |
-| F-06 | 确保 C-ABI 字符串兼容性 |
-| F-07 | 不要为传递给外部代码的类型实现 Drop |
-| F-08 | 在 FFI 中正确处理错误 |
-| F-09 | 安全包装中用引用而非原始指针 |
-| F-10 | 导出函数必须线程安全 |
-| F-11 | 小心 `repr(packed)` 字段的引用 |
-| F-12 | 文档化 C 参数的不变式假设 |
-| F-13 | 确保自定义类型的数据布局一致 |
-| F-14 | FFI 中的类型应有稳定布局 |
-| F-15 | 验证外部值的鲁棒性 |
-| F-16 | 分离 C 闭包的数据和代码 |
-| F-17 | 用不透明类型而非 `c_void` |
-| F-18 | 避免向 C 传递 trait object |
+| F-01 | Avoid passing strings directly to C |
+| F-02 | Read `std::ffi` docs carefully |
+| F-03 | Implement Drop for wrapped C pointers |
+| F-04 | Handle panics across FFI boundaries |
+| F-05 | Use portable type aliases in `std`/`libc` |
+| F-06 | Ensure C-ABI string compatibility |
+| F-07 | Don't implement Drop for types passed to foreign code |
+| F-08 | Handle errors correctly in FFI |
+| F-09 | Use references in safe wrappers instead of raw pointers |
+| F-10 | Exported functions must be thread-safe |
+| F-11 | Be careful with `repr(packed)` field references |
+| F-12 | Document invariants for C parameters |
+| F-13 | Ensure consistent layout for custom types |
+| F-14 | Use stable layouts for FFI types |
+| F-15 | Validate external inputs defensively |
+| F-16 | Separate data and code for C callbacks |
+| F-17 | Use opaque types instead of `c_void` |
+| F-18 | Avoid passing trait objects to C |
 
-### 安全抽象 (11条)
+### Safety abstractions (11)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| S-01 | 注意 panic 带来的内存安全问题 |
-| S-02 | unsafe 代码作者必须验证安全不变量 |
-| S-03 | 不要在公共 API 中暴露未初始化内存 |
-| S-04 | 避免因 panic 导致的双重释放 |
-| S-05 | 手动实现 Auto Traits 时考虑安全性 |
-| S-06 | 不要在公共 API 中暴露原始指针 |
-| S-07 | 为性能提供安全的替代方法 |
-| S-08 | 从不可变参数返回可变引用是错误的 |
-| S-09 | 在每个 unsafe 块前添加 SAFETY 注释 |
-| S-10 | 为公共 unsafe 函数添加文档中的 Safety 节 |
-| S-11 | 在 unsafe 函数中使用 `assert!` 而非 `debug_assert!` |
+| S-01 | Consider panic-related memory safety issues |
+| S-02 | Unsafe authors must validate safety invariants |
+| S-03 | Don't expose uninitialized memory in public APIs |
+| S-04 | Avoid double free on panic |
+| S-05 | Consider safety when implementing auto traits manually |
+| S-06 | Don't expose raw pointers in public APIs |
+| S-07 | Provide safe alternatives for performance |
+| S-08 | Returning `&mut` from `&` is wrong |
+| S-09 | Add SAFETY comments before each unsafe block |
+| S-10 | Add `Safety` sections to public unsafe APIs |
+| S-11 | Use `assert!` (not `debug_assert!`) for invariants |
 
-### I/O 安全 (1条)
+### I/O safety (1)
 
-| 规则 | 说明 |
+| Rule | Notes |
 |-----|------|
-| I-01 | 使用原始句柄时确保 I/O 安全 |
+| I-01 | Ensure I/O safety when using raw handles |
 
 ---
 
-## 常见错误与修复
+## Common errors and fixes
 
-| 错误 | 修复 |
+| Error | Fix |
 |-----|------|
-| 空指针解引用 | 解引用前检查 null |
-| 使用后释放 | 确保生命周期有效性 |
-| 数据竞争 | 添加同步 |
-| 对齐违规 | 使用 `#[repr(C)]`，检查对齐 |
-| 无效位模式 | 使用 `MaybeUninit` |
-| 缺少 SAFETY 注释 | 添加注释 |
+| Null pointer dereference | Check for null before deref |
+| Use-after-free | Ensure lifetimes are valid |
+| Data races | Add synchronization or ensure Send/Sync |
+| Alignment violations | Use `#[repr(C)]`, check alignment |
+| Invalid bit patterns | Use `MaybeUninit` |
+| Missing SAFETY comment | Add a comment |
 
 ---
 
-## 废弃模式
+## Deprecated patterns
 
-| 废弃 | 替代 |
+| Deprecated | Replacement |
 |-----|------|
 | `mem::uninitialized()` | `MaybeUninit<T>` |
-| `mem::zeroed()` (引用类型) | `MaybeUninit<T>` |
-| 原始指针运算 | `NonNull<T>`, `ptr::add` |
-| `CString::new().unwrap().as_ptr()` | 先存储 `CString` |
-| `static mut` | `AtomicT` 或 `Mutex` |
-| 手动 extern | `bindgen` |
+| `mem::zeroed()` (reference types) | `MaybeUninit<T>` |
+| Raw pointer arithmetic | `NonNull<T>`, `ptr::add` |
+| `CString::new().unwrap().as_ptr()` | Store the `CString` first |
+| `static mut` | `AtomicT` or `Mutex` |
+| Manual extern bindings | `bindgen` |
 
 ---
 
-## FFI 工具
+## FFI tools
 
-| 方向 | 工具 |
+| Direction | Tool |
 |-----|------|
 | C → Rust | `bindgen` |
 | Rust → C | `cbindgen` |
@@ -167,18 +167,18 @@ pub unsafe fn write(ptr: *mut T, value: &T) { ... }
 
 ---
 
-## 调试工具
+## Debug tools
 
 ```bash
-# Miri 检测未定义行为
+# Miri: detect undefined behavior
 cargo +nightly install miri
 cargo miri test
 
-# 内存问题检测
+# Memory checks
 cargo install valgrind
 valgrind ./target/release/my_program
 
-# 竞态条件检测
+# Data race detection
 cargo install helgrind
 helgrind ./target/release/my_program
 ```

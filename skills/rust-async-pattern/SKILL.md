@@ -1,244 +1,243 @@
 ---
 name: rust-async-pattern
-description: "高级异步模式专家。处理 Stream 实现, 零拷贝, tokio::spawn 生命周期, 插件系统调度, tonic 流式响应等问题。触发词：async, Stream, tokio::spawn, 零拷贝, 插件系统, tonic, 流式, BorrowedMessage, 异步调度"
+description: "Advanced async: Stream lifetimes, zero-copy buffers, tokio::spawn + non-'static data, plugin scheduling, tonic. Triggers: async, Stream, tokio::spawn, zero-copy, plugin system, tonic"
 globs: ["**/*.rs"]
 ---
 
-# 高级异步模式
+# Advanced Async Patterns
 
-## 核心问题
+## Core issues
 
-**异步代码的生命周期怎么这么难管？**
+**Key question:** Why are lifetimes in async code so hard?
 
-async 让生命周期问题更复杂。
+Async complicates borrowing because futures can be held across await points.
 
 ---
 
-## Stream + 自引用缓冲区
+## Stream + self-referential buffer
 
-### 问题代码
+### Problem code
 
 ```rust
-// ❌ Stream 实现中返回借用内部缓冲区的 slice
+// ❌ Stream returns slices that borrow from internal buffers
 pub struct SessionStream<'buf> {
-    buf: Vec<u8>,
-    cache: Vec<CachedResponse<'buf>>,
+ buf: Vec<u8>,
+ cache: Vec<CachedResponse<'buf>>,
 }
 
 impl Stream for SessionStream<'buf> {
-    type Item = Result<CachedResponse<'buf>, Status>;
-    
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        // ❌ 返回的 CachedResponse<'buf> 生命周期依赖于 self.buf
-        // 但 Stream trait 的 Item 必须能在任意时刻被使用
-    }
+ type Item = Result<CachedResponse<'buf>, Status>;
+ 
+ fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+ // ❌ Returned CachedResponse<'buf> borrows from self.buf
+ // But Stream::Item can be held arbitrarily long.
+ }
 }
 ```
 
-### 错误信息
+### Error message
 
 ```
 error[E0700]: hidden type for `impl futures_core::Stream` captures lifetime that does not appear in bounds
 error[E0310]: the parameter type may not live long enough
 ```
 
-### 原因
+### Root cause
 
-- Stream 的 Item 可以被任意持有
-- `'buf` 和 `self` 绑定在一起
-- 返回的 Item 逃逸了 self 的生命周期
+- Stream::Item can be held for an arbitrary duration.
+- The returned item borrows from self.
+- The borrow does not outlive the stream value.
 
-### 解决：Worker + Channel 模式
+### Fix: worker + channel pattern
 
 ```rust
-// ✅ 内部 worker 持有缓冲区，对外只发 owned snapshot
+// ✅ Worker owns buffers; consumers receive owned snapshots
 pub struct SessionWorker {
-    rx_events: Receiver<Bytes>,
-    tx_snapshots: Sender<SnapshotResponse>,
-    buf: Vec<u8>,
+ rx_events: Receiver<Bytes>,
+ tx_snapshots: Sender<SnapshotResponse>,
+ buf: Vec<u8>,
 }
 
 impl SessionWorker {
-    pub async fn run(&mut self) {
+ pub async fn run(&mut self) {
         while let Some(event) = self.rx_events.recv().await {
             let snapshot = self.process_event(event);
             self.tx_snapshots.send(snapshot).await;
         }
-    }
-    
-    fn process_event(&mut self, event: Bytes) -> SnapshotResponse {
-        // 内部可以借用 self.buf
+ }
+ 
+ fn process_event(&mut self, event: Bytes) -> SnapshotResponse {
+        // It can borrow internally from self.buf.
         let start = self.buf.len();
         self.buf.extend_from_slice(&event);
-        
-        // 但对外发的是 owned SnapshotResponse
+
+        // But outside, return an owned SnapshotResponse.
         SnapshotResponse {
             id: self.next_id,
             payload: Bytes::copy_from_slice(&self.buf[start..]),
         }
-    }
+}
 }
 
-// ✅ Stream 只读 channel，发的都是 owned
+// ✅ Stream only reads from a channel; all items are owned
 pub struct SessionStream {
-    rx_snapshots: Receiver<SnapshotResponse>,
+ rx_snapshots: Receiver<SnapshotResponse>,
 }
 
 impl Stream for SessionStream {
-    type Item = Result<SnapshotResponse, Status>;
-    
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        // 这里发的都是 SnapshotResponse (owned)，没问题
-    }
+ type Item = Result<SnapshotResponse, Status>;
+ 
+ fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+ // All items are owned SnapshotResponse values.
+ }
 }
 ```
 
 ---
 
-## tokio::spawn + 非 'static 生命周期
+## tokio::spawn + non-'static lifetime
 
-### 问题代码
+### Problem code
 
 ```rust
-// ❌ tokio::spawn 要求 'static，但 BorrowedMessage<'a> 不是
+// ❌ tokio::spawn requires 'static; BorrowedMessage<'a> is not 'static.
 pub struct BorrowedMessage<'a> {
-    pub raw: &'a [u8],
-    pub meta: MessageMeta,
+ pub raw: &'a [u8],
+ pub meta: MessageMeta,
 }
 
 pub trait Plugin: Send + Sync {
-    fn handle<'a>(&'a self, msg: BorrowedMessage<'a>)
-        -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send + 'a>>;
+ fn handle<'a>(&'a self, msg: BorrowedMessage<'a>)
+ -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send + 'a>>;
 }
 
 fn dispatch_to_plugins(msg: BorrowedMessage<'a>) {
-    for p in &plugins {
-        let fut = p.handle(msg);
-        tokio::spawn(fut);  // ❌ fut 不是 'static
-    }
+ for p in &plugins {
+ let fut = p.handle(msg);
+ tokio::spawn(fut); // ❌ fut is not 'static
+ }
 }
 ```
 
-### 原因
+### Reason
 
-- tokio::spawn 不知道任务何时完成
-- 如果任务持有 `'a` 引用，`'a` 可能已过期
+- Tokio: :spawn does not know when the mission will be completed
+- If the job holds reference,  may have expired
 
-### 解决：事件循环 + Actor 模式
+### Solve: Event loop + actor model
 
 ```rust
-// ✅ 不 spawn，每个插件是一个长期存在的 actor
+// ✅ Oh, no. spawn,Each plugin is a permanent one. actor
 struct PluginActor<M: MessageHandler> {
-    plugin: M,
-    queue: Receiver<PluginMsg>,
-    arena: MessageArena,
+ plugin: M,
+ queue: Receiver<PluginMsg>,
+ arena: MessageArena,
 }
 
 impl<M: MessageHandler> PluginActor<M> {
-    pub async fn run(&mut self) {
-        while let Some(msg) = self.queue.recv().await {
-            // 在 arena 域内处理消息
-            self.arena.with_message(msg, |msg_ref| {
-                self.plugin.handle(msg_ref);
-            });
-        }
-    }
+ pub async fn run(&mut self) {
+ while let Some(msg) = self.queue.recv().await {
+ // Yes. arena Can not open message
+ self.arena.with_message(msg, |msg_ref| {
+ self.plugin.handle(msg_ref);
+ });
+ }
+ }
 }
 
-// ✅ 用索引代替直接借用
+// ✅ Index instead of direct borrowing
 pub struct MessageRef {
-    index: usize,
-    generation: u64,
+ index: usize,
+ generation: u64,
 }
 
 struct MessageArena {
-    buffers: Vec<Arc<Buffer>>,
+ buffers: Vec<Arc<Buffer>>,
 }
 
 impl MessageArena {
-    pub fn get(&self, ref: MessageRef) -> Option<&[u8]> {
-        // 通过索引安全获取
-        self.buffers.get(ref.index)?.get(ref.generation)
-    }
+ pub fn get(&self, ref: MessageRef) -> Option<&[u8]> {
+ // Secured through indexing
+ self.buffers.get(ref.index)?.get(ref.generation)
+ }
 }
 ```
 
 ---
 
-## 插件系统调度模式
+## Plugin system scheduling pattern
 
-### 约束
+### Constraints
 
-1. 零拷贝缓冲区复用
-2. 插件热插拔
-3. 异步 handler
-4. 可重试/延后 ack
+1. Reuse zero-copy buffers
+2. Hot-pluggable plugins
+3. Async handlers
+4. Retry/delayed ack
 
-### 最终架构
+### Final structure
 
 ```
 ┌─────────────────────────────────────┐
-│          Decode Layer               │  持有缓冲区
+│ Decode Layer │ Holds buffers
 ├─────────────────────────────────────┤
-│           MessageArena              │  缓冲区管理
+│ MessageArena │ Buffer management
 ├─────────────────────────────────────┤
-│           Event Loop                │  协作式调度
+│ Event Loop │ Cooperative scheduling
 ├─────────────────────────────────────┤
-│           Plugin Actor              │  每个插件一个
+│ Plugin Actor │ One per plugin
 └─────────────────────────────────────┘
 │
-↓  API 层只看到 owned 数据
+↓ API layer sees only owned data
 ┌─────────────────────────────────────┐
-│         GraphQL / gRPC              │  'static 要求
+│ GraphQL / gRPC │ Requires 'static
 └─────────────────────────────────────┘
 ```
 
-### 关键设计
+### Key design
 
 ```rust
-// 1. 缓冲区管理域
+// 1. Buffer management arena
 struct MessageArena {
-    buffers: Vec<Arc<Buffer>>,
-    free_list: Vec<usize>,
+ buffers: Vec<Arc<Buffer>>,
+ free_list: Vec<usize>,
 }
 
 impl MessageArena {
-    // 分配时返回索引，不是引用
-    fn alloc(&mut self, data: &[u8]) -> MessageRef {
-        let idx = self.buffers.len();
-        self.buffers.push(Arc::new(data.to_vec()));
-        MessageRef { index: idx, generation: 0 }
-    }
+ // Return an index, not a reference
+ fn alloc(&mut self, data: &[u8]) -> MessageRef {
+ let idx = self.buffers.len();
+ self.buffers.push(Arc::new(data.to_vec()));
+ MessageRef { index: idx, generation: 0 }
+ }
 }
 
-// 2. API 层只暴露 owned
+// 2. API exposes only owned data
 pub trait Plugin: Send + Sync {
-    async fn handle(&self, msg: OwnedMessage);  // owned
+ async fn handle(&self, msg: OwnedMessage); // owned
 }
 ```
 
 ---
 
-## 常见问题速查
+## Common problems
 
-| 问题 | 原因 | 解决 |
+| Problem | Reason | Solve |
 |-----|------|-----|
-| Stream 返回借用 | Item 生命周期逃逸 | Worker + Channel |
-| tokio::spawn 非 'static | 任务可能持有临时引用 | 事件循环模式 |
-| 插件 handler 生命周期 | 插件持有消息 | Actor + 索引 |
-| async-graphql + GAT | 'static 要求 | owned DTO |
-| tonic Stream 自引用 | 缓冲区复用冲突 | Snapshot 模式 |
+| Stream returns a borrow | Item lifetime escapes | Worker + channel |
+| tokio::spawn not 'static | Tasks may hold temporary refs | Event-loop pattern |
+| Plugin handler lifetime | Plugin holds message | Actor + index |
+| async-graphql + GAT | 'static requirement | Owned DTO |
+| tonic stream self-reference | Buffer reuse conflicts | Snapshot pattern |
 
 ---
 
-## 何时用 spawn，何时用 actor
+## When to spawn, when to act
 
-| 场景 | 方案 |
+| scene | Programme |
 |-----|-----|
-| 独立任务，可并行 | tokio::spawn |
-| 需要协作调度 | Event Loop |
-| 插件系统 | Actor 模式 |
-| 长期运行的状态ful | Actor |
-| 短命任务 | spawn |
-| 需要背压控制 | Channel + actor |
-
+| Independent missions, possible parallel | tokio::spawn |
+| Need for collaborative movement | Event Loop |
+| Plugin System | Actor model |
+| Long-run statusful | Actor |
+| Short-term tasks | spawn |
+| We need back pressure control. | Channel + actor |

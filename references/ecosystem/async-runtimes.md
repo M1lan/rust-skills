@@ -1,195 +1,195 @@
-# 异步运行时对比：Tokio vs async-std
+# Side-by-side comparison: Tokio vs async-std
 
-Rust 异步编程需要运行时（Runtime）来执行 Future。本文档对比主流异步运行时。
+Rust async programming requires a runtime to execute futures. This document compares common runtimes.
 
-## 主流运行时对比
+## Mainstream run-time comparison
 
-| 特性 | Tokio | async-std | smol | async-executor |
-|-----|-------|-----------|------|----------------|
-| 下载量 | ~50M | ~8M | ~2M | ~1M |
-| 稳定性 | 稳定 | 稳定 | 实验性 | 稳定 |
-| 性能 | 高 | 中 | 高 | 高 |
-| 异步生态 | 丰富 | 一般 | 正在发展 | 轻量级 |
+| Feature | Tokio | async-std | smol | async-executor |
+|----------|-------|-----------|----------|----------------|
+| Downloads | ~50M | ~8M | ~2M | ~1M |
+| Stability | Stable | Stable | Experimental | Stable |
+| Performance | High | Medium | High | High |
+| Ecosystem | Rich | General | Growing | Lightweight |
 
 ## Tokio
 
-### 特点
+### Characteristics
 
-- **最流行**：生态最完善，文档最丰富
-- **多功能**：提供 I/O、计时器、文件系统、网络等
-- **多线程**：默认多线程运行时
-- **延迟低**：针对低延迟优化
+- **Most popular:** largest ecosystem and docs
+- **Feature-rich:** I/O, timers, file systems, networking
+- **Multi-threaded:** default runtime flavor
+- **Low latency:** optimized for performance
 
-### 基本使用
+### Basic use
 
 ```rust
 use tokio::{time, net::TcpListener, sync::Mutex};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 并发任务
-    tokio::spawn(async {
-        // 异步代码
-    });
+ // Spawn a task.
+ tokio::spawn(async {
+ // Async code
+ });
 
-    // 计时器
-    time::sleep(std::time::Duration::from_secs(1)).await;
+ // Timer
+ time::sleep(std::time::Duration::from_secs(1)).await;
 
-    // 互斥锁（异步）
-    let lock = Mutex::new(0);
-    let mut guard = lock.lock().await;
-    *guard += 1;
+ // Async mutex
+ let lock = Mutex::new(0);
+ let mut guard = lock.lock().await;
+ *guard += 1;
 
-    Ok(())
+ Ok(())
 }
 ```
 
-### 运行时配置
+### Runtime configuration
 
 ```rust
 #[tokio::main(flavor = "multi_thread", worker_threads = 4)]
 async fn main() {
-    // 多线程模式，4 个工作线程
+ // Multi-threaded runtime with 4 workers
 }
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    // 单线程模式
+ // Single-threaded runtime
 }
 ```
 
 ## async-std
 
-### 特点
+### Characteristics
 
-- **标准库风格**：API 类似 std
-- **一致性**：与 std 命名一致
-- **轻量级**：依赖较少
-- **集成简单**：容易集成到现有项目
+- **Std-like API:** similar to std
+- **Consistency:** close to std naming
+- **Lightweight:** fewer dependencies
+- **Easy to integrate:** fits existing projects
 
-### 基本使用
+### Basic use
 
 ```rust
 use async_std::{net::TcpListener, sync::Mutex};
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 并发任务
-    async_std::spawn(async {
-        // 异步代码
-    });
+ // Spawn a task.
+ async_std::spawn(async {
+ // Async code
+ });
 
-    // 互斥锁
-    let lock = Mutex::new(0).await;
-    let mut guard = lock.lock().await;
-    *guard += 1;
+ // Async mutex.
+ let lock = Mutex::new(0).await;
+ let mut guard = lock.lock().await;
+ *guard += 1;
 
-    Ok(())
+ Ok(())
 }
 ```
 
-## 选择建议
+## Selection recommendations
 
-### 选择 Tokio 的情况
+### Selection of Tokio
 
 ```rust
-// 1. 生产环境 Web 服务
-// tokio 是最成熟的选择
+// 1. Production web services
+// tokio is the most mature choice.
 
-// 2. 需要高性能网络
-// tokio 的网络栈经过大量优化
+// 2. High-performance networking
+// tokio has strong networking performance.
 
-// 3. 需要完整的异步生态
-// tokio::spawn, tokio::time, tokio::fs 等
+// 3. Full ecosystem support
+// tokio::spawn, tokio::time, tokio::fs, etc.
 
-// 4. 多线程并发
-// tokio 的多线程运行时成熟稳定
+// 4. Multi-threaded runtime
+// tokio's multi-threaded scheduler is mature.
 ```
 
-### 选择 async-std 的情况
+### When to choose async-std
 
 ```rust
-// 1. 代码风格一致性
-// 如果你更喜欢 std 的命名风格
+// 1. Std-like API preference
+// Prefer std naming conventions.
 
-// 2. 轻量级依赖
-// 项目不想引入 tokio 的全部依赖
+// 2. Lightweight dependency set
+// Project wants fewer dependencies than tokio.
 
-// 3. 学习目的
-// async-std 更接近标准库的抽象
+// 3. Learning or smaller projects
+// async-std stays close to std style.
 ```
 
-### 选择 smol 的情况
+### Select smol
 
 ```rust
-// 1. 极简需求
-// smol 是最小的运行时
+// 1. Extreme demand
+// smol Is the smallest run time
 
-// 2. 需要与其他运行时互操作
-// smol 可以嵌入到其他运行时中
+// 2. Need to interoperate with other running times
+// smol You can embed in other running times
 
-// 3. 实验性项目
-// smol 支持最新的异步特性
+// 3. Pilot projects
+// smol Support for the latest rectangular properties
 ```
 
-## 性能对比
+## Performance comparison
 
-### 任务创建开销
+### Task Creation Costs
 
 ```rust
-// Tokio: 低开销的任务创建
+// Tokio: Create task with low cost
 tokio::spawn(async {
-    // 轻量级任务
+ // Lightweight task
 });
 
-// async-std: 类似的开销
+// async-std: Similar expenses
 async_std::spawn(async {
-    // 轻量级任务
+ // Lightweight task
 });
 ```
 
-### 通道性能
+### Channel performance
 
 ```rust
-// Tokio mpsc 通道
+// Tokio mpsc Channels
 use tokio::sync::mpsc;
 let (tx, rx) = mpsc::channel(100);
 
-// async-std mpsc 通道
+// async-std mpsc Channels
 use async_std::channel;
 let (tx, rx) = channel::bounded(100);
 ```
 
-## 互操作性
+## Interoperability
 
-### 在 tokio 中运行 async-std
+### Run async-std in tokio
 
 ```rust
 use tokio::runtime::Runtime;
 
 fn main() {
-    let rt = Runtime::new().unwrap();
-    rt.block_on(async {
-        async_std::task::sleep(std::time::Duration::from_secs(1)).await;
-    });
+ let rt = Runtime::new().unwrap();
+ rt.block_on(async {
+ async_std::task::sleep(std::time::Duration::from_secs(1)).await;
+ });
 }
 ```
 
-### 在 async-std 中运行 tokio
+### Run tokio in async-std
 
 ```rust
 use async_std::task;
 
 fn main() {
-    task::block_on(async {
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    });
+ task::block_on(async {
+ tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+ });
 }
 ```
 
-## 推荐配置
+## Recommended Configuration
 
-### Web 服务配置
+### Web Service Configuration
 
 ```rust
 // Cargo.toml
@@ -203,7 +203,7 @@ lto = true
 codegen-units = 1
 ```
 
-### 轻量级配置
+### Lightweight Configuration
 
 ```rust
 // Cargo.toml
@@ -217,48 +217,47 @@ features = ["rt", "time"]
 optional = true
 ```
 
-## 常见问题
+## Common problems
 
-### Q: 可以混合使用不同的运行时吗？
+### Q: Can you mix different running times?
 
-A: 不建议在同一项目中使用多个运行时。每个运行时都有自己的调度器，混合使用会导致问题。
+A: Multiple run-times are not recommended for the same project. Each run-time has its own scheduler, and mixed use can cause problems.
 
-### Q: 什么时候需要自定义运行时？
+### Q: When do you need to customize running time?
 
 ```rust
-// 高性能场景可能需要自定义配置
+// High-performance scenarios may require custom configuration
 use tokio::runtime::Builder;
 
 fn main() {
-    let rt = Builder::new()
-        .threaded_hammer()  // 优化线程创建
-        .worker_threads(16) // 增加工作线程
-        .max_blocking_threads(512) // 增加阻塞线程
-        .build()
-        .unwrap();
+ let rt = Builder::new()
+ .threaded_hammer() // Optimizing Thread Creation
+ .worker_threads(16) // Increase Threads
+ .max_blocking_threads(512) // Increase blocking threads
+ .build()
+ .unwrap();
 
-    rt.block_on(async {
-        // 应用代码
-    });
+ rt.block_on(async {
+ // Apply Code
+ });
 }
 ```
 
-### Q: 如何测试异步代码？
+### Q: How do you test the async code?
 
 ```rust
 #[cfg(test)]
 mod tests {
-    use tokio::test as tokio_test;
+ use tokio::test as tokio_test;
 
-    #[tokio_test]
-    async fn test_async_function() {
-        // 测试异步代码
-    }
+ #[tokio_test]
+ async fn test_async_function() {
+ // Test the step code
+ }
 
-    #[async_std::test]
-    async fn test_async_std_function() {
-        // 测试 async-std 代码
-    }
+ #[async_std::test]
+ async fn test_async_std_function() {
+ // Test async-std Code
+ }
 }
 ```
-

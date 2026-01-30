@@ -1,110 +1,110 @@
 ---
 name: rust-performance
-description: "性能优化专家。处理 benchmark, profiling, allocation, SIMD, cache, 优化, 基准测试等问题。触发词：performance, optimization, benchmark, profiling, allocation, SIMD, cache, make it faster, 性能优化, 基准测试, 内存分配"
+description: "Performance optimization: benchmarking, profiling, allocation, SIMD, cache, and bottleneck analysis. Triggers: performance, optimization, benchmark, profiling, allocation, SIMD, cache"
 globs: ["**/*.rs"]
 ---
 
-# 性能优化
+# Performance Optimization
 
-## 核心问题
+## Core issues
 
-**瓶颈在哪里？优化值得吗？**
+**Key question:** Where are the bottlenecks, and is optimization worth it?
 
-先测量，再优化。不要猜测。
-
----
-
-## 优化优先级
-
-```
-1. 算法选择     (10x - 1000x)   ← 最大收益
-2. 数据结构     (2x - 10x)
-3. 减少分配     (2x - 5x)
-4. 缓存优化     (1.5x - 3x)
-5. SIMD/并行    (2x - 8x)
-```
-
-**警告**：过早优化是万恶之源。先让代码跑起来，再优化热点。
+First measure, then optimize. Don't guess.
 
 ---
 
-## 测量工具
+## Optimization priorities
 
-### Benchmark
+```
+1. Algorithm selection (10x - 1000x) ← biggest wins
+2. Data structures (2x - 10x)
+3. Reduce allocations (2x - 5x)
+4. Cache Optimization (1.5x - 3x)
+5. SIMD/Parallel (2x - 8x)
+```
+
+**Warning:** Premature optimization is the root of all evil.
+
+---
+
+## Measurement tools
+
+### Benchmarking
 
 ```bash
 # cargo bench
 cargo bench
-# criterion 统计基准测试
+# criterion: statistical benchmarking
 ```
 
 ### Profiling
 
-| 工具 | 用途 |
+| Tools | Use |
 |-----|------|
-| `perf` / `flamegraph` | CPU 火焰图 |
-| `heaptrack` | 分配追踪 |
-| `valgrind --tool=cachegrind` | 缓存分析 |
-| `dhat` | 堆分配分析 |
+| `perf` / `flamegraph` | CPU flamegraph |
+| `heaptrack` | Allocation Tracking |
+| `valgrind --tool=cachegrind` | Cache Analysis |
+| `dhat` | Heap allocation analysis |
 
 ---
 
-## 常见优化技术
+## Common optimization techniques
 
-### 1. 预分配
+### 1. Pre-allocation
 
 ```rust
-// ❌ 每次增长都分配
+// ❌ Each push can reallocate.
 let mut vec = Vec::new();
 for i in 0..1000 {
-    vec.push(i);
+ vec.push(i);
 }
 
-// ✅ 预分配已知大小
+// ✅ Pre-allocate known size
 let mut vec = Vec::with_capacity(1000);
 for i in 0..1000 {
-    vec.push(i);
+ vec.push(i);
 }
 ```
 
-### 2. 避免 clone
+### 2. Avoid unnecessary clones
 
 ```rust
-// ❌ 不必要的 clone
+// ❌ Unnecessary clone
 fn process(item: &Item) {
-    let data = item.data.clone();
-    // ...
+ let data = item.data.clone();
+ // ...
 }
 
-// ✅ 使用引用
+// ✅ Use references
 fn process(item: &Item) {
-    let data = &item.data;
-    // ...
+ let data = &item.data;
+ // ...
 }
 ```
 
-### 3. 批量操作
+### 3. Batch operations
 
 ```rust
-// ❌ 多次数据库调用
+// ❌ Multiple database calls
 for user_id in user_ids {
-    db.update(user_id, status)?;
+ db.update(user_id, status)?;
 }
 
-// ✅ 批量更新
+// ✅ Batch Update
 db.update_all(user_ids, status)?;
 ```
 
-### 4. 小对象优化
+### 4. Small object optimization
 
 ```rust
-// 常用小集合用 SmallVec
+// Use SmallVec for small collections
 use smallvec::SmallVec;
 let mut vec: SmallVec<[u8; 16]> = SmallVec::new();
-// 16 个以内不分配堆内存
+// 16 elements inline
 ```
 
-### 5. 并行处理
+### 5. Parallel processing
 
 ```rust
 use rayon::prelude::*;
@@ -116,235 +116,234 @@ let sum: i32 = data
 
 ---
 
-## 反模式
+## Anti-patterns
 
-| 反模式 | 为什么不好 | 正确做法 |
+| Anti-pattern | Why not? | Better |
 |-------|-----------|---------|
-| clone 躲避生命周期 | 性能开销 | 正确所有权设计 |
-| 什么都 Box | 间接成本 | 优先栈分配 |
-| HashMap 小数据集 | 开销过大 | Vec + 线性搜索 |
-| 循环中字符串拼接 | O(n²) | `with_capacity` 或 `format!` |
-| LinkedList | 缓存不友好 | `Vec` 或 `VecDeque` |
+| Clones to avoid lifetimes | Performance cost | Design ownership properly |
+| Boxing everything | Indirection cost | Prefer stack/inline types |
+| HashMap for tiny datasets | Overhead dominates | Vec + linear search |
+| Repeated string concat in loops | O(n²) | `with_capacity` or `format!` |
+| LinkedList | Poor cache locality | `Vec` or `VecDeque` |
 
 ---
 
-## 常见问题排查
+## Symptom checklist
 
-| 症状 | 可能原因 | 排查方法 |
+| Symptom | Possible causes | Query |
 |-----|---------|---------|
-| 内存持续增长 | 泄漏、累积 | heaptrack |
-| CPU 占用高 | 算法问题 | flamegraph |
-| 响应不稳定 | 分配波动 | dhat |
-| 吞吐量低 | 串行处理 | rayon 并行 |
+| Memory keeps growing | Leaks or unbounded caches | heaptrack |
+| High CPU usage | Algorithm hotspots | flamegraph |
+| Latency spikes | Allocation churn | dhat |
+| Low throughput | Serial work | rayon parallelism |
 
 ---
 
-## 优化检查清单
+## Optimization checklist
 
-- [ ] 测了吗？不要猜测
-- [ ] 瓶颈确认了吗？
-- [ ] 算法最优吗？
-- [ ] 数据结构合适吗？
-- [ ] 减少不必要的分配了吗？
-- [ ] 能并行吗？
-- [ ] 释放内存了吗？（RAII）
-
----
-
-# 高级性能优化
-
-> 以下内容针对多线程、高并发场景
-
-## 为什么多线程代码反而更慢？
-
-性能问题往往藏在看不见的地方。
+- [ ] Have you measured it? Don't guess.
+- [ ] Are bottlenecks confirmed?
+- [ ] Is the algorithm best?
+- [ ] Is the data structure appropriate?
+- [ ] Are unnecessary allocations reduced?
+- [ ] Can work be parallelized?
+- [ ] Has the memory been released? (RAII)
 
 ---
 
-## False Sharing (伪共享)
+# Advanced performance optimization
 
-### 症状
+> The following target multi-threaded, high-concurrency scenarios.
+
+## Why is multi-threaded code slower?
+
+Performance problems are often hidden in invisible places.
+
+---
+
+## False sharing
+
+### Symptom
 
 ```rust
-// 问题代码：多个 AtomicU64 挤在一个 struct 里
+// Problem: multiple AtomicU64 packed into one struct
 struct ShardCounters {
-    inflight: AtomicU64,
-    completed: AtomicU64,
+ inflight: AtomicU64,
+ completed: AtomicU64,
 }
 ```
 
-- CPU 一个核心长期 90%+
-- perf 显示大量 LLC miss
-- 原子 RMW 操作异常多
-- 增加线程数反而变慢
+- One core is pegged at 90%+
+- perf shows many LLC misses
+- Atomic RMW operations dominate
+- Adding threads makes it slower
 
-### 诊断
+### Diagnosis
 
 ```bash
-# perf 分析
+# perf analysis
 perf stat -d
-# 看 LLC-load-misses 和 locked-instrs
+# Look at LLC-load-misses and locked-instrs
 
-# 火焰图
+# Flamegraph
 cargo flamegraph
-# 找 atomic fetch_add 热点
+# Find atomic fetch_add hotspots
 ```
 
-### 解决：Cache Line Padding
+### Fix: cache-line padding
 
 ```rust
-// 每个字段独立一个 cache line
+// One cache line per field
 #[repr(align(64))]
 struct PaddedAtomicU64(AtomicU64);
 
 struct ShardCounters {
-    inflight: PaddedAtomicU64,
-    completed: PaddedAtomicU64,
+ inflight: PaddedAtomicU64,
+ completed: PaddedAtomicU64,
 }
 ```
 
-### 验证
+### Validation
 
 ```rust
-// Benchmark 对比
-fn bench_naive() { /* 多个 AtomicU64 */ }
-fn bench_padded() { /* 独立 cache line */ }
+// Benchmark comparison
+fn bench_naive() { /* multiple AtomicU64 */ }
+fn bench_padded() { /* separate cache lines */ }
 ```
 
 ---
 
-## 锁竞争优化
+## Lock contention optimization
 
-### 症状
+### Symptom
 
 ```rust
-// 全局共享 HashMap，所有线程竞争同一把锁
+// Global HashMap shared by all threads
 let shared: Arc<Mutex<HashMap<String, usize>>> = Arc::new(Mutex::new(HashMap::new()));
 ```
 
-- 大量时间在 mutex lock/unlock
-- 增加线程数性能不升反降
-- 系统时间占比高
+- Lots of time in mutex lock/unlock
+- Performance stagnates or degrades with more threads
+- High system time
 
-### 解决：分片本地计数
+### Fix: shard local counts
 
 ```rust
-// 每个线程本地 HashMap，最后合并
+// Per-thread HashMap, merge at the end
 pub fn parallel_count(data: &[String], num_threads: usize) -> HashMap<String, usize> {
-    let mut handles = Vec::new();
-    
-    for chunk in data.chunks(/*...*/) {
-        handles.push(thread::spawn(move || {
-            let mut local = HashMap::new();
-            for key in chunk {
-                *local.entry(key).or_insert(0) += 1;
-            }
-            local  // 返回本地计数
-        }));
-    }
-    
-    // 合并所有本地结果
-    let mut result = HashMap::new();
-    for handle in handles {
-        for (k, v) in handle.join().unwrap() {
-            *result.entry(k).or_insert(0) += v;
-        }
-    }
-    result
+ let mut handles = Vec::new();
+ 
+ for chunk in data.chunks(/*...*/) {
+ handles.push(thread::spawn(move || {
+ let mut local = HashMap::new();
+ for key in chunk {
+ *local.entry(key).or_insert(0) += 1;
+ }
+ local // Return local count
+ }));
+ }
+ 
+ // Merge all local results
+ let mut result = HashMap::new();
+ for handle in handles {
+ for (k, v) in handle.join().unwrap() {
+ *result.entry(k).or_insert(0) += v;
+ }
+ }
+ result
 }
 ```
 
 ---
 
-## NUMA 感知
+## NUMA awareness
 
-### 问题场景
+### Problem scene
 
 ```rust
-// 多 socket 服务器，内存分配在远端 NUMA node
+// Multi-socket servers: memory is allocated on a remote NUMA node
 let pool = ArenaPool::new(num_threads);
-// Rayon work-stealing 让任务在任意线程执行
-// 跨 NUMA 访问导致严重的内存迁移延迟
+// Rayon work-stealing can run tasks on any thread.
+// Cross-NUMA access adds significant latency.
 ```
 
-### 解决
+### Solve
 
 ```rust
-// 1. NUMA 节点绑定
+// 1. Bind to a NUMA node
 let numa_node = detect_numa_node();
 let pool = NumaAwarePool::new(numa_node);
 
-// 2. 统一 allocator（jemalloc）
+// 2. Use a NUMA-aware allocator (jemalloc)
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-// 3. 避免跨 NUMA 的对象 clone
-// 直接借用，不做数据拷贝
+// 3. Avoid cross-NUMA object copies
+// Borrow directly; do not copy data across nodes.
 ```
 
-### 工具
+### Tools
 
 ```bash
-# 检查 NUMA 拓扑
+# Inspect NUMA topology
 numactl --hardware
 
-# 绑定 NUMA node
+# Bind to a NUMA node
 numactl --cpunodebind=0 --membind=0 ./my_program
 ```
 
 ---
 
-## 数据结构优化
+## Data structure optimization
 
-### HashMap vs 分片
+### HashMap vs.
 
-| 场景 | 方案 | 原因 |
+| Scenario | Option | Reason |
 |-----|------|-----|
-| 高并发写入 | DashMap 或分片 | 减少锁竞争 |
-| 读多写少 | RwLock<HashMap> | 读锁不阻塞 |
-| 小数据集 | Vec + 线性搜索 | HashMap 开销更大 |
-| 固定 key | Enum + 数组 | 完全无哈希开销 |
+| High concurrency | DashMap or sharded map | Reduces lock contention |
+| Read-heavy | `RwLock<HashMap>` | Readers don't block each other |
+| Small dataset | Vec + linear search | HashMap overhead dominates |
+| Fixed keys | Enum + array | Avoid hash cost |
 
-### 示例：读多写少
+### Example: Read more and write less
 
 ```rust
-// 大量读取，少量更新
+// Many reads, few updates
 struct Config {
-    map: RwLock<HashMap<String, ConfigValue>>,
+ map: RwLock<HashMap<String, ConfigValue>>,
 }
 
 impl Config {
-    pub fn get(&self, key: &str) -> Option<ConfigValue> {
-        self.map.read().get(key).cloned()
-    }
-    
-    pub fn update(&self, key: String, value: ConfigValue) {
-        self.map.write().insert(key, value);
-    }
+ pub fn get(&self, key: &str) -> Option<ConfigValue> {
+ self.map.read().get(key).cloned()
+ }
+ 
+ pub fn update(&self, key: String, value: ConfigValue) {
+ self.map.write().insert(key, value);
+ }
 }
 ```
 
 ---
 
-## 常见陷阱速查
+## Common traps.
 
-| 陷阱 | 症状 | 解决 |
+| Trap | Symptom | Solve |
 |-----|------|-----|
-| 相邻原子变量 | 伪共享 | `#[repr(align(64))]` |
-| 全局 Mutex | 锁竞争 | 本地计数 + 合并 |
-| 跨 NUMA 分配 | 内存迁移 | NUMA 感知分配 |
-| 频繁小分配 | allocator 压力 | 对象池 |
-| 动态字符串 key | 额外分配 | 用整数 ID 代替 |
+| Adjacent atomic fields | False sharing | `#[repr(align(64))]` |
+| Global mutex | Lock contention | Local counts + merge |
+| Cross-NUMA allocation | Memory migration | NUMA-aware allocation |
+| Frequent small allocations | Allocator pressure | Object pool |
+| Dynamic string keys | Extra allocation | Use integer IDs |
 
 ---
 
-## 性能诊断工具
+## Performance diagnostic tool
 
-| 工具 | 用途 |
+| Tools | Use |
 |-----|------|
-| `perf stat -d` | CPU 周期、缓存命中率 |
-| `perf record -g` | 采样火焰图 |
-| `valgrind --tool=cachegrind` | 缓存分析 |
-| `jemalloc profiling` | 内存分配分析 |
-| `numactl` | NUMA 拓扑 |
-
+| `perf stat -d` | CPU cycles, cache metrics |
+| `perf record -g` | Sampled flamegraph |
+| `valgrind --tool=cachegrind` | Cache analysis |
+| `jemalloc profiling` | Allocation analysis |
+| `numactl` | NUMA affinity |

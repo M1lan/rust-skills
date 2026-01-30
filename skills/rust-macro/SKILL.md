@@ -1,138 +1,137 @@
 ---
 name: rust-macro
-description: "宏与过程元编程专家。处理 macro_rules!, derive, proc-macro, 泛型宏、编译时计算等问题。触发词：macro, derive, proc-macro, macro_rules, 宏, 过程宏, 编译时计算"
+description: "Macros and procedural macros: macro_rules!, derive, proc-macro, compile-time codegen. Triggers: macro, derive, proc-macro, macro_rules"
 globs: ["**/*.rs"]
 ---
 
-# 宏与过程元编程
+# Macros and Procedural Macros
 
-## 核心问题
+## Core issues
 
-**如何减少重复代码？什么时候用宏，什么时候用泛型？**
+**Key question:** How do we reduce repetition? When to use macros vs generics?
 
-宏是编译时代码生成，泛型是运行时多态。
+Macros generate code at compile time; generics provide type abstraction.
 
 ---
 
-## 宏 vs 泛型
+## Macros vs generics
 
-| 维度 | 宏 | 泛型 |
+| Dimension | Macros | Generics |
 |-----|-----|-----|
-| 灵活性 | 代码转换 | 类型抽象 |
-| 编译开销 | 增量编译友好 | 单态化开销 |
-| 错误信息 | 可能难懂 | 清晰 |
-| 调试 | 调试宏展开代码 | 直接调试 |
-| 使用场景 | 减少样板 | 通用算法 |
+| Flexibility | Code transformation | Type abstraction |
+| Compile cost | Higher | Lower |
+| Error messages | Can be harder to read | Usually clearer |
+| Debug | Debug macro extension code | Direct debug |
+| Use case | Reduce boilerplate | Shared algorithms |
 
 ---
 
-## declarative macros (macro_rules!)
+## Declarative macros (macro_rules!)
 
-### 基本结构
+### Basic structure
 
 ```rust
 macro_rules! my_vec {
-    () => {
-        Vec::new()
-    };
-    ($($elem:expr),*) => {
-        vec![$($elem),*]
-    };
-    ($elem:expr; $n:expr) => {
-        vec![$elem; $n]
-    };
+ () => {
+ Vec::new()
+ };
+ ($($elem:expr),*) => {
+ vec![$($elem),*]
+ };
+ ($elem:expr; $n:expr) => {
+ vec![$elem; $n]
+ };
 }
 ```
 
-### 重复模式
+### Repetition patterns
 
-| 标记 | 含义 |
+| Tag | Meaning |
 |-----|------|
-| `$()` | 匹配零个或多个 |
-| `$($x),*` | 以逗号分隔 |
-| `$($x),+` | 至少一个 |
-| `$x:ty` | 类型匹配 |
-| `$x:expr` | 表达式匹配 |
-| `$x:pat` | 模式匹配 |
+| `$()` | Match zero or more |
+| `$($x),*` | Comma-separated |
+| `$($x),+` | At least one |
+| `$x:ty` | Type match |
+| `$x:expr` | Expression match |
+| `$x:pat` | Pattern match |
 
 ---
 
-## 派生宏 (derive macro)
+## Procedural macros
 
-### 实现简单 derive
+### Keep it simple
 
 ```rust
 use proc_macro::TokenStream;
 #[proc_macro_derive(MyDerive)]
 pub fn my_derive(input: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(input as syn::DeriveInput);
-    let name = &input.ident;
-    
-    let expanded = quote::quote! {
-        impl MyDerive for #name {
-            fn my_method(&self) -> String {
-                format!("Hello from {}", stringify!(#name))
-            }
-        }
-    };
-    
-    expanded.into()
+ let input = syn::parse_macro_input!(input as syn::DeriveInput);
+ let name = &input.ident;
+ 
+ let expanded = quote::quote! {
+ impl MyDerive for #name {
+ fn my_method(&self) -> String {
+ format!("Hello from {}", stringify!(#name))
+ }
+ }
+ };
+ 
+ expanded.into()
 }
 ```
 
-### 使用
+### Use
 
 ```rust
 #[derive(MyDerive)]
 struct MyStruct {
-    field: i32,
+ field: i32,
 }
 ```
 
 ---
 
-## 函数式过程宏
+## Function-like procedural macro
 
 ```rust
 #[proc_macro]
 pub fn my_func_macro(input: TokenStream) -> TokenStream {
-    // 转换输入
-    let tokens = input.into_iter().collect::<Vec<_>>();
-    // 生成代码
-    quote::quote! { /* ... */ }.into()
+ // Convert input
+ let tokens = input.into_iter().collect::<Vec<_>>();
+ // Generate code
+ quote::quote! { /* ... */ }.into()
 }
 ```
 
 ---
 
-## 调试宏
+## Debugging macros
 
 ```bash
-# 查看宏展开结果
+# View macro extension results
 cargo expand
 cargo expand --test test_name
 ```
 
 ---
 
-## 最佳实践
+## Best practices
 
-| 做法 | 原因 |
+| Approach | Reason |
 |-----|------|
-| 先用泛型 | 泛型更安全、更易调试 |
-| 宏保持简单 | 复杂宏难维护 |
-| 文档化宏 | 用户需要理解展开行为 |
-| 测试展开结果 | 确保正确性 |
-| 用 cargo expand 调试 | 可视化宏展开 |
+| Prefer generics first | Safer, easier to debug |
+| Keep macros simple | Complex macros are hard to maintain |
+| Document macros | Users need to understand behavior |
+| Test expansion results | Ensure correctness |
+| Debug with `cargo expand` | Visualize expansion |
 
 ---
 
-## 常用 crate
+## Common crates
 
-| crate | 用途 |
+| crate | Use |
 |-------|------|
-| `syn` | 解析 Rust 代码 |
-| `quote` | 生成 Rust 代码 |
-| `proc-macro2` | Token 处理 |
-| `derive-more` | 常用 derive 宏 |
-
+| `syn` | Parse Rust code |
+| `quote` | Generate Rust code |
+| `proc-macro2` | Token processing |
+| `derive-more` | Common derive macros |

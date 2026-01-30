@@ -24,10 +24,10 @@ reqwest = { version = "0.11", features = ["json"] }
 use reqwest;
 
 let response = reqwest::Client::new()
-    .post("https://api.example.com")
-    .json(&payload)
-    .send()
-    .await?;
+ .post("https://api.example.com")
+ .json(&payload)
+ .send()
+ .await?;
 ```
 
 ### Async Runtime
@@ -54,8 +54,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct User {
-    id: u64,
-    name: String,
+ id: u64,
+ name: String,
 }
 ```
 
@@ -72,8 +72,8 @@ struct User {
 
 ```toml
 [dependencies]
-anyhow = "1.0"  # Application errors
-thiserror = "1.0"  # Library errors
+anyhow = "1.0" # Application errors
+thiserror = "1.0" # Library errors
 ```
 
 ```rust
@@ -82,11 +82,11 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ApiError {
-    #[error("request failed: {source}")]
-    Request { #[from] source: reqwest::Error },
-    
-    #[error("invalid response: {message}")]
-    InvalidResponse { message: String },
+ #[error("request failed: {source}")]
+ Request { #[from] source: reqwest::Error },
+ 
+ #[error("invalid response: {message}")]
+ InvalidResponse { message: String },
 }
 ```
 
@@ -106,9 +106,9 @@ pub enum ApiError {
 use sqlx::{Row, Postgres};
 
 let row = sqlx::query("SELECT id, name FROM users WHERE id = $1")
-    .bind(user_id)
-    .fetch_one(&pool)
-    .await?;
+ .bind(user_id)
+ .fetch_one(&pool)
+ .await?;
 
 let id: i64 = row.try_get("id")?;
 let name: String = row.try_get("name")?;
@@ -128,17 +128,17 @@ use clap::{Parser, Args};
 
 #[derive(Args)]
 struct ConnectArgs {
-    host: String,
-    port: u16,
-    #[arg(short, long)]
-    timeout: Option<u64>,
+ host: String,
+ port: u16,
+ #[arg(short, long)]
+ timeout: Option<u64>,
 }
 
 #[derive(Parser)]
 #[command(name = "myapp")]
 struct Cli {
-    #[command(flatten)]
-    connect: ConnectArgs,
+ #[command(flatten)]
+ connect: ConnectArgs,
 }
 ```
 
@@ -179,8 +179,8 @@ use tracing::{info, instrument};
 
 #[instrument]
 async fn process_item(item: &Item) {
-    info!("Processing item: {}", item.id);
-    // ...
+ info!("Processing item: {}", item.id);
+ // ...
 }
 ```
 
@@ -188,10 +188,10 @@ async fn process_item(item: &Item) {
 
 ```toml
 [dev-dependencies]
-proptest = "1.0"        # Property-based testing
-mockall = "0.12"        # Mocking
-rstest = "0.18"         # Parametrized tests
-criterion = "0.5"       # Benchmarks
+proptest = "1.0" # Property-based testing
+mockall = "0.12" # Mocking
+rstest = "0.18" # Parametrized tests
+criterion = "0.5" # Benchmarks
 ```
 
 ## Utilities
@@ -221,11 +221,11 @@ use validator::{Validate, email};
 
 #[derive(Validate)]
 struct UserRegistration {
-    #[validate(email)]
-    email: String,
-    
-    #[validate(length(min = 8))]
-    password: String,
+ #[validate(email)]
+ email: String,
+ 
+ #[validate(length(min = 8))]
+ password: String,
 }
 ```
 

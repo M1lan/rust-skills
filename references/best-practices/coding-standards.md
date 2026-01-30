@@ -1,363 +1,363 @@
 ---
 name: coding-standards
-description: "Rust 编码规范（80条）"
+description: "Rust Coding Code(80Article)"
 category: coding-style
 triggers: ["coding", "standard", "style", "naming", "convention"]
 related_skills:
-  - rust-coding
-  - rust-anti-pattern
-  - rust-learner
+ - rust-coding
+ - rust-anti-pattern
+ - rust-learner
 ---
 
-# Rust 编码规范
+# Rust Code
 
-> 本规范定义了 Rust 编码标准，涵盖命名、格式、文档、错误处理等方面。
+> This instruction defines Rust Code standards, covering naming, formatting, documentation, error handling, etc.
 
 ---
 
-## 命名规范（N-001 到 N-020）
+## Naming Code (N-001 to N-020)
 
-### N-001: 变量使用 snake_case
+### N-001: Use snake case
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let max_connections = 100;
 let user_name = String::new();
 let is_valid = true;
 
-// ❌ 错误
+// ❌ Error
 let MaxConnections = 100;
 let userName = String::new();
 ```
 
-### N-002: 常量使用 SCREAMING_SNAKE_CASE
+### N-002: Use the constant SCREAMING SNAKE CASE
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 const MAX_BUFFER_SIZE: usize = 1024;
 const DEFAULT_TIMEOUT_MS: u64 = 3000;
 
-// ❌ 错误
+// ❌ Error
 const MaxBufferSize: usize = 1024;
 ```
 
-### N-003: 函数使用 snake_case
+### N-003: Use snake case
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn calculate_total_price() -> f64 { ... }
 fn process_user_data(user: &User) -> Result<(), Error> { ... }
 
-// ❌ 错误
+// ❌ Error
 fn CalculateTotalPrice() -> f64 { ... }
 ```
 
-### N-004: 类型和 trait 使用 PascalCase
+### N-004: Types and traits in PascalCase
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 struct UserSession;
 enum ProcessingState;
 trait Serializable;
 
-// ❌ 错误
+// ❌ Error
 struct user_session;
 enum processing_state;
 ```
 
-### N-005: 避免前缀 Get
+### N-005: Avoid prefix Get
 
 ```rust
-// ✅ 正确 - 直接描述属性
+// ✅ Correct. - Direct Description Properties
 fn name(&self) -> &str { &self.name }
 fn len(&self) -> usize { self.items.len() }
 
-// ❌ 错误
+// ❌ Error
 fn get_name(&self) -> &str { &self.name }
 ```
 
-### N-006: 布尔值使用 is_/has_/can_ 前缀
+### N-006: Boolean values use is /has /can prefix
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let is_active = true;
 let has_permission = false;
 let can_connect = true;
 
-// ❌ 错误
+// ❌ Error
 let active = true;
 ```
 
-### N-007: 类型命名避免重复
+### N-007: Duplication of type naming
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 struct User;
 struct UserRepository;
 
-// ❌ 错误
+// ❌ Error
 struct UserUser;
 ```
 
-### N-008: 模块使用 snake_case
+### N-008: Module using snake case
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 pub mod network_config;
 pub mod data_processing;
 ```
 
-### N-009: Crate 名称使用 kebab-case
+### N-009: Crate name using kebab-case
 
 ```toml
 [package]
 name = "my-awesome-crate"
 ```
 
-### N-010: 泛型参数使用简短描述性名称
+### N-010: Use short descriptive names for broad parameters
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn process_items<T: Processable>(items: &[T]) { ... }
 struct Cache<K, V> { ... }
 ```
 
-### N-011: 生命周期参数使用简短名称
+### N-011: Short name for lifetime parameters
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn longest<'a>(s1: &'a str, s2: &'a str) -> &'a str { ... }
 ```
 
-### N-012: 错误类型以 Error 结尾
+### N-012: Error type ends with Error
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 struct ParseError;
 enum ValidationError;
 ```
 
-### N-013: Result 和 Option 变量避免冗余命名
+### N-013: Result and Option variables avoid redundant naming
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 match some_result {
-    Ok(value) => process(value),
-    Err(e) => handle_error(e),
+ Ok(value) => process(value),
+ Err(e) => handle_error(e),
 }
 ```
 
-### N-014: 集合命名使用复数形式
+### N-014: Pool naming in plural form
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let users: Vec<User> = vec![];
 let items: HashSet<String> = HashSet::new();
 ```
 
-### N-015: 临时变量使用简短名称
+### N-015: Short name for temporary variables
 
 ```rust
-// ✅ 正确 - 短作用域可接受
+// ✅ Correct. - Short field acceptable
 for i in 0..10 {
-    println!("{}", i);
+ println!("{}", i);
 }
 ```
 
-### N-016: 公开 API 命名要清晰明确
+### N-016: Public API naming is clear
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 pub fn calculate_tax(income: f64, rate: f64) -> f64 { ... }
 ```
 
-### N-017: 避免魔法数字，使用命名常量
+### N-017: Avoid magic numbers, use name constants
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 const HTTP_PORT: u16 = 80;
 const MAX_RETRY_ATTEMPTS: u32 = 3;
 ```
 
-### N-018: 配置字段命名保持一致性
+### N-018: Consistency of configuration field names
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 struct Config {
-    host: String,
-    port: u16,
-    timeout_secs: u64,
+ host: String,
+ port: u16,
+ timeout_secs: u64,
 }
 ```
 
-### N-019: 避免使用下划线开头的命名
+### N-019: Avoid naming with underlined beginnings
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 let value = 42;
 let _ = compute_side_effect();
 ```
 
-### N-020: 关联函数命名要反映语义
+### N-020: Associated functions are named to reflect semantics
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 impl Vec<u32> {
-    fn with_capacity(capacity: usize) -> Self { ... }
-    fn from_elem(elem: u32, n: usize) -> Self { ... }
+ fn with_capacity(capacity: usize) -> Self { ... }
+ fn from_elem(elem: u32, n: usize) -> Self { ... }
 }
 ```
 
 ---
 
-## 代码格式（F-021 到 F-035）
+## Code format (F-021 to F-035)
 
-### F-021: 使用 rustfmt 进行格式化
+### F-021: Format with rustfmt
 
 ```bash
 cargo fmt
 cargo fmt --check
 ```
 
-### F-022: 行宽不超过 100 字符
+### F-022: Line width does not exceed 100 characters
 
 ```rust
-// ✅ 正确 - 合理换行
+// ✅ Correct. - Rational line break
 fn complex_function(
-    arg1: Type1,
-    arg2: Type2,
-    arg3: Type3,
+ arg1: Type1,
+ arg2: Type2,
+ arg3: Type3,
 ) -> Result<Output, Error> {
-    // ...
+ // ...
 }
 ```
 
-### F-023: 大括号风格统一
+### F-023: Unanimous parenthesis
 
 ```rust
 fn foo() {
-    // ...
+ // ...
 }
 
 if condition {
-    // ...
+ // ...
 } else {
-    // ...
+ // ...
 }
 ```
 
-### F-024: match 分支对齐
+### F-024: Match branch alignment
 
 ```rust
 match value {
-    Pattern1 => { ... }
-    Pattern2 => { ... }
-    _ => { ... }
+ Pattern1 => { ... }
+ Pattern2 => { ... }
+ _ => { ... }
 }
 ```
 
-### F-025: 链式调用换行
+### F-025: Chain call break
 
 ```rust
 let result = items
-    .iter()
-    .filter(|x| x.is_valid())
-    .map(|x| x.value())
-    .collect::<Vec<_>>();
+ .iter()
+ .filter(|x| x.is_valid())
+ .map(|x| x.value())
+ .collect::<Vec<_>>();
 ```
 
-### F-026: 泛型参数换行
+### F-026: Generic Parameter Explosion
 
 ```rust
 fn generic_function<T, U, V>(
-    arg1: T,
-    arg2: U,
-    arg3: V,
+ arg1: T,
+ arg2: U,
+ arg3: V,
 ) -> Result<Output, Error>
 where
-    T: Trait1,
-    U: Trait2,
-    V: Trait3,
+ T: Trait1,
+ U: Trait2,
+ V: Trait3,
 {
-    // ...
+ // ...
 }
 ```
 
-### F-027: 结构体字段对齐
+### F-027: Structure field alignment
 
 ```rust
 struct Config {
-    host:        String,
-    port:        u16,
-    timeout:     Duration,
-    max_retries: u32,
+ host: String,
+ port: u16,
+ timeout: Duration,
+ max_retries: u32,
 }
 ```
 
-### F-028: 注释与代码同行时使用双斜杠
+### F-028: Double slash while comments and codes are running
 
 ```rust
-let value = 42; // 这是单行注释
+let value = 42; // It's a one-line note.
 ```
 
-### F-029: 文档注释使用 ///
+### F-029: Document comments used ///
 
 ```rust
-/// 处理用户请求
+/// Processing of user requests
 ///
 /// # Arguments
 ///
-/// * `request` - 用户请求数据
+/// * `request` - User request data
 pub fn handle_request(request: &Request) -> Response {
-    // ...
+ // ...
 }
 ```
 
-### F-030: 模块级注释使用 //!
+### F-030: Use module level comments / /!
 
 ```rust
-//! 网络通信模块
+//! Network communication module
 //!
-//! 提供 TCP/UDP 协议支持和连接管理功能。
+//! Provision TCP/UDP Protocol support and connection management functions.
 ```
 
-### F-031: 复杂表达式添加括号
+### F-031: Add brackets to complex expressions
 
 ```rust
 let result = (a + b) * (c - d) / e;
 ```
 
-### F-032: match 表达式避免过度嵌套
+### F-032: Match expression to avoid overlaying
 
 ```rust
 match data {
-    Ok(ref data) if data.is_empty() => return Ok(Default::default()),
-    Ok(data) => process(data),
-    Err(e) => return Err(e),
+ Ok(ref data) if data.is_empty() => return Ok(Default::default()),
+ Ok(data) => process(data),
+ Err(e) => return Err(e),
 }
 ```
 
-### F-033: 闭包参数换行
+### F-033: Closed Parameter Line Break
 
 ```rust
 let result = items
-    .iter()
-    .filter(|item| item.is_valid())
-    .map(|item| item.value())
-    .collect::<Vec<_>>();
+ .iter()
+ .filter(|item| item.is_valid())
+ .map(|item| item.value())
+ .collect::<Vec<_>>();
 ```
 
-### F-034: 属性格式化
+### F-034: Properties Formatting
 
 ```rust
 #[derive(Debug, Clone, PartialEq)]
 #[cfg(test)]
 pub struct Config {
-    // ...
+ // ...
 }
 ```
 
-### F-035: import 分组排序
+### F-035: Import Group Sorting
 
 ```rust
 use std::collections::HashMap;
@@ -371,199 +371,199 @@ use crate::error::AppError;
 
 ---
 
-## 错误处理（E-036 到 E-050）
+## Error handling (E-036 to E-050)
 
-### E-036: 库代码使用自定义错误类型
+### E-036: User-defined error type for library code
 
 ```rust
 #[derive(Error, Debug)]
 pub enum ParseError {
-    #[error("invalid format: {0}")]
-    InvalidFormat(String),
+ #[error("invalid format: {0}")]
+ InvalidFormat(String),
 
-    #[error("missing field: {0}")]
-    MissingField(&'static str),
+ #[error("missing field: {0}")]
+ MissingField(&'static str),
 
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
+ #[error(transparent)]
+ Io(#[from] std::io::Error),
 }
 ```
 
-### E-037: 应用程序使用 anyhow
+### E-037: application usage
 
 ```rust
 use anyhow::{Context, Result};
 
 fn main() -> Result<()> {
-    let config = load_config()
-        .context("Failed to load configuration")?;
-    Ok(())
+ let config = load_config()
+ .context("Failed to load configuration")?;
+ Ok(())
 }
 ```
 
-### E-038: 错误传播使用 ?
+### E-038: Error Dissemination Usage?
 
 ```rust
 fn read_and_parse(path: &Path) -> Result<Data, ParseError> {
-    let content = std::fs::read_to_string(path)
-        .map_err(ParseError::from_io)?;
-    let data = serde_json::from_str(&content)
-        .map_err(ParseError::from_json)?;
-    Ok(data)
+ let content = std::fs::read_to_string(path)
+ .map_err(ParseError::from_io)?;
+ let data = serde_json::from_str(&content)
+ .map_err(ParseError::from_json)?;
+ Ok(data)
 }
 ```
 
-### E-039: 提供有意义的错误上下文
+### E-039: Providing meaningful error context
 
 ```rust
 let file = std::fs::File::open(path)
-    .with_context(|| format!("Failed to open: {}", path.display()))?;
+ .with_context(|| format!("Failed to open: {}", path.display()))?;
 ```
 
-### E-040: 避免在库中使用 panic 处理错误
+### E-040: Avoid panic processing errors in libraries
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn parse_number(input: &str) -> Result<u32, ParseNumberError> {
-    input.parse().ok_or(ParseNumberError::InvalidFormat)
+ input.parse().ok_or(ParseNumberError::InvalidFormat)
 }
 
-// ❌ 错误
+// ❌ Error
 fn parse_number(input: &str) -> u32 {
-    input.parse().expect("Invalid number format")
+ input.parse().expect("Invalid number format")
 }
 ```
 
-### E-041: 错误类型实现 std::error::Error
+### E-041: Error type achieved std::error::Error
 
 ```rust
 impl std::fmt::Display for MyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)
-    }
+ fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+ write!(f, "{}", self.message)
+ }
 }
 
 impl std::error::Error for MyError {}
 ```
 
-### E-042: 使用 ? 进行错误转换
+### E-042: Use? Error conversion
 
 ```rust
 impl From<std::io::Error> for AppError {
-    fn from(e: std::io::Error) -> Self {
-        AppError::Io(e)
-    }
+ fn from(e: std::io::Error) -> Self {
+ AppError::Io(e)
+ }
 }
 ```
 
-### E-043: 避免 unwrap 和 expect 的滥用
+### E-043: Avoid unwrap and expediency
 
 ```rust
-// ✅ 正确 - 只在确信不会失败时使用
+// ✅ Correct. - Use only when convinced not to fail
 fn get_version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
+ env!("CARGO_PKG_VERSION")
 }
 
-// ❌ 错误
+// ❌ Error
 let value = map.get(&key).unwrap();
 ```
 
-### E-044: 使用合适的方法处理 Option
+### E-044: Use appropriate methods to process
 
 ```rust
 let value = config.get("key").unwrap_or(&DEFAULT_VALUE);
 let value = config.get("key").ok_or(KeyNotFoundError)?;
 ```
 
-### E-045: 错误日志记录要平衡信息与噪声
+### E-045: Error log records balance information with noise
 
 ```rust
 tracing::error!(error = %error, "Operation failed");
 ```
 
-### E-046: 定义错误变体时考虑未来扩展
+### E-046: Consider future extensions when defining an error variant
 
 ```rust
 #[derive(Error, Debug)]
 pub enum AppError {
-    #[error("database error: {0}")]
-    Database(#[from] sqlx::Error),
+ #[error("database error: {0}")]
+ Database(#[from] sqlx::Error),
 
-    #[error("validation error: {0}")]
-    Validation(String),
+ #[error("validation error: {0}")]
+ Validation(String),
 
-    #[error("unknown error occurred")]
-    Unknown,
+ #[error("unknown error occurred")]
+ Unknown,
 }
 ```
 
-### E-047: 批量操作返回部分成功信息
+### E-047: Batch operation returns partial success information
 
 ```rust
 struct BatchResult<T> {
-    succeeded: Vec<T>,
-    failed: Vec<(T, Error)>,
-    skipped: Vec<T>,
+ succeeded: Vec<T>,
+ failed: Vec<(T, Error)>,
+ skipped: Vec<T>,
 }
 ```
 
-### E-048: 区分可恢复和不可恢复错误
+### E-048: Distinction between recoverable and irrecoverable errors
 
 ```rust
 fn validate_input(input: &str) -> Result<(), ValidationError> {
-    if input.is_empty() {
-        return Err(ValidationError::Empty);
-    }
-    Ok(())
+ if input.is_empty() {
+ return Err(ValidationError::Empty);
+ }
+ Ok(())
 }
 
 fn invariant_violated() -> ! {
-    panic!("Internal invariant violated");
+ panic!("Internal invariant violated");
 }
 ```
 
-### E-049: 错误传播链保持信息
+### E-049: Error transmission chain to maintain information
 
 ```rust
 fn level2() -> Result<(), Error> {
-    level3().context("Failed at level2")?;
-    Ok(())
+ level3().context("Failed at level2")?;
+ Ok(())
 }
 ```
 
-### E-050: 测试错误类型
+### E-050: Test error type
 
 ```rust
 #[cfg(test)]
 mod error_tests {
-    #[test]
-    fn error_display_format() {
-        let error = ParseError::InvalidFormat("test".to_string());
-        assert_eq!(error.to_string(), "invalid format: test");
-    }
+ #[test]
+ fn error_display_format() {
+ let error = ParseError::InvalidFormat("test".to_string());
+ assert_eq!(error.to_string(), "invalid format: test");
+ }
 }
 ```
 
 ---
 
-## 文档规范（D-051 到 D-065）
+## Document specifications (D-051 to D-065)
 
-### D-051: 公共 API 必须有文档注释
+### D-051: Public API must have a document comment
 
 ```rust
-/// 解析 JSON 字符串为结构体
+/// Parsing JSON String as Structure
 ///
 /// # Arguments
 ///
-/// * `input` - JSON 格式的输入字符串
+/// * `input` - JSON Input string for format
 ///
 /// # Returns
 ///
-/// 解析后的结构体实例
+/// Example of a parsing structure
 ///
 /// # Errors
 ///
-/// 当 JSON 格式不正确时返回 [`ParseError`]
+/// When? JSON Returns when format is incorrect [`ParseError`]
 ///
 /// # Examples
 ///
@@ -573,14 +573,14 @@ mod error_tests {
 /// let value = parse_json(json).unwrap();
 /// ```
 pub fn parse_json(input: &str) -> Result<Value, ParseError> {
-    // ...
+ // ...
 }
 ```
 
-### D-052: 文档包含 Examples 章节
+### D-052: Document contains Examples chapters
 
 ```rust
-/// 计算两个数的最大公约数
+/// Maximum number of conventions to calculate two digits
 ///
 /// # Examples
 ///
@@ -588,17 +588,17 @@ pub fn parse_json(input: &str) -> Result<Value, ParseError> {
 /// assert_eq!(gcd(12, 18), 6);
 /// ```
 pub fn gcd(a: u64, b: u64) -> u64 {
-    if b == 0 { a } else { gcd(b, a % b) }
+ if b == 0 { a } else { gcd(b, a % b) }
 }
 ```
 
-### D-053: 文档链接使用反引号和方括号
+### D-053: Document link with inverse numbers and square brackets
 
 ```rust
-/// 有关错误处理的详细信息，请参见 [`std::io::Error`] 和 [`std::fmt::Display`]。
+/// Details about error handling,Please see [`std::io::Error`] and [`std::fmt::Display`].
 ```
 
-### D-054: 文档中的代码块标记语言
+### D-054: Code block tag language in document
 
 ```rust
 /// ```rust
@@ -611,26 +611,26 @@ pub fn gcd(a: u64, b: u64) -> u64 {
 /// ```
 ```
 
-### D-055: 模块文档说明模块职责
+### D-055: Modular document description of modular duties
 
 ```rust
-//! 错误处理模块
+//! Error Processing Module
 //!
-//! 提供统一的错误类型定义和错误处理实用函数。
+//! Provides a uniform definition of error type and a functional function for error handling.
 //!
-//! ## 主要类型
+//! ## Main type
 //!
-//! - [`AppError`] - 应用程序主错误类型
+//! - [`AppError`] - Application master error type
 ```
 
-### D-056: 复杂算法提供算法说明
+### D-056: Complex algorithms providing algorithms
 
 ```rust
-/// 使用冒泡排序对切片进行原地排序
+/// Use bubble sorting to sort slices in situ
 ///
 /// # Algorithm
 ///
-/// 冒泡排序重复遍历列表，比较相邻元素。
+/// Flow Sort Repeat Through Calendar List,Relatively adjacent elements.
 ///
 /// # Time Complexity
 ///
@@ -640,34 +640,34 @@ pub fn gcd(a: u64, b: u64) -> u64 {
 ///
 /// O(1)
 pub fn bubble_sort<T: Ord>(slice: &mut [T]) {
-    // ...
+ // ...
 }
 ```
 
-### D-057: 文档说明 panic 情况
+### D-057: Document description panic
 
 ```rust
-/// 获取数组的第一个元素
+/// Get the first element of the array
 ///
 /// # Panics
 ///
-/// 当数组为空时 panic。
+/// When array is empty panic.
 pub fn first<T>(slice: &[T]) -> &T {
-    slice.get(0).expect("slice is empty")
+ slice.get(0).expect("slice is empty")
 }
 ```
 
-### D-058: 文档说明线程安全性
+### D-058: Document describes linear security
 
 ```rust
-/// 线程安全的配置管理器
+/// Profile Manager for Thread Security
 ///
 /// # Thread Safety
 ///
-/// 此类型实现了 [`Send`] 和 [`Sync`]，可以在多线程间安全共享。
+/// This type works. [`Send`] and [`Sync`],It can be shared safely across multiple lines..
 ```
 
-### D-059: Cargo.toml 包含完整描述
+### D-059: Cargo.toml contains complete description
 
 ```toml
 [package]
@@ -682,197 +682,197 @@ keywords = ["tag1", "tag2"]
 categories = ["development-tools", "database"]
 ```
 
-### D-060: 文档注释保持一致性
+### D-060: Consistency of document comments
 
 ```rust
-/// 成功返回处理后的数据
+/// Returns processed data successfully
 ///
 /// # Arguments
 ///
-/// * `data` - 输入数据
+/// * `data` - Enter Data
 ///
 /// # Returns
 ///
-/// 处理后的数据
+/// processed data
 ///
 /// # Errors
 ///
-/// 当输入数据无效时返回错误
+/// Returns error when input data is invalid
 ```
 
-### D-061: 弃用使用 #[deprecated]
+### D-061: Disused #[deprecaed]
 
 ```rust
 #[deprecated(
-    since = "2.0.0",
-    note = "Use `parse_config_v2` instead"
+ since = "2.0.0",
+ note = "Use `parse_config_v2` instead"
 )]
 pub fn parse_config(path: &Path) -> Result<Config, ConfigError> {
-    // ...
+ // ...
 }
 ```
 
-### D-062: 内部实现细节用 // 注释
+### D-062: Details for internal realization / Comment
 
 ```rust
-// 使用快速路径处理常见情况
+// Use fast path to handle common situations
 if let Some(result) = try_fast_path() {
-    return result;
+ return result;
 }
 
-// 慢速路径：处理边界情况
+// Slow path: handle boundary cases
 slow_path_algorithm()
 ```
 
-### D-063: 复杂逻辑添加解释注释
+### D-063: Complicated logic with explanatory notes
 
 ```rust
-// 使用位运算将状态压缩到单个字节
-// bit 0-2: 状态码 (0-7)
-// bit 3-5: 标志位 (3 个标志)
+// Compressing the state to a single byte using bit calculations
+// bit 0-2: Status Code (0-7)
+// bit 3-5: flags (3 flags)
 const STATUS_MASK: u8 = 0x07;
 ```
 
-### D-064: TODO 和 FIXME 使用标准格式
+### D-064: TODO and FIXME using standard formats
 
 ```rust
-// TODO: 优化算法复杂度
-// FIXME: 在边界条件下可能 panic
+// TODO: Optimizing algorithm complexity
+// FIXME: May panic at boundary conditions
 ```
 
-### D-065: 避免显而易见的注释
+### D-065: Avoid obvious comments
 
 ```rust
-// ✅ 正确 - 解释为什么，不是做什么
+// ✅ Correct - explain why, not what
 std::thread::sleep(Duration::from_secs(5));
 
-// ❌ 错误
-let x = 5;  // 将 x 设为 5
+// ❌ Error
+let x = 5; // Set x to 5
 ```
 
 ---
 
-## 代码质量（Q-066 到 Q-080）
+## Code quality (Q-066 to Q-080)
 
-### Q-066: 避免不必要的 clone
+### Q-066: Avoid unnecessary clone
 
 ```rust
-// ✅ 正确
+// ✅ Correct.
 fn process_name(name: &str) {
-    println!("{}", name);
+ println!("{}", name);
 }
 
-// ❌ 错误
+// ❌ Error
 fn process_name(name: &String) {
-    let n = name.clone();
-    println!("{}", n);
+ let n = name.clone();
+ println!("{}", n);
 }
 ```
 
-### Q-067: 优先使用迭代器而非索引
+### Q-067: Prefer to an iterative rather than an index
 
 ```rust
 let result: Vec<_> = items.iter().filter(|x| x.is_valid()).collect();
 ```
 
-### Q-068: 避免在热点循环中分配内存
+### Q-068: Avoid distribution of memory in hotspot cycles
 
 ```rust
 let mut buffer = String::with_capacity(1024);
 for _ in 0..1000 {
-    buffer.push_str("data");
+ buffer.push_str("data");
 }
 ```
 
-### Q-069: 使用 Result/Option 的组合器
+### Q-069: Combination with Result/Option
 
 ```rust
 let value = config
-    .get("feature")
-    .and_then(|v| v.parse::<bool>().ok())
-    .unwrap_or(true);
+ .get("feature")
+ .and_then(|v| v.parse::<bool>().ok())
+ .unwrap_or(true);
 ```
 
-### Q-070: 保持函数短小单一职责
+### Q-070: Keep function short and single
 
 ```rust
 fn validate_email(email: &str) -> Result<(), ValidationError> {
-    if !email.contains('@') {
-        return Err(ValidationError::InvalidEmail);
-    }
-    Ok(())
+ if !email.contains('@') {
+ return Err(ValidationError::InvalidEmail);
+ }
+ Ok(())
 }
 ```
 
-### Q-071: 避免类型膨胀
+### Q-071: Avoid type expansion
 
 ```rust
 fn process_items<T: Processable>(items: &[T]) {
-    for item in items {
-        item.process();
-    }
+ for item in items {
+ item.process();
+ }
 }
 ```
 
-### Q-072: 优先使用组合而非继承
+### Q-072: Priority use of combinations rather than succession
 
 ```rust
 struct Calculator {
-    logger: Logger,
-    validator: Validator,
+ logger: Logger,
+ validator: Validator,
 }
 ```
 
-### Q-073: 使用 #[cfg(test)] 隔离测试代码
+### Q-073: Use #[cfg(test)] quarantine test code
 
 ```rust
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_basic_functionality() {
-        // 测试代码
-    }
+ #[test]
+ fn test_basic_functionality() {
+ // Test Code
+ }
 }
 ```
 
-### Q-074: 使用 match 的完整性
+### Q-074: Use match integrity
 
 ```rust
 enum Status {
-    Pending,
-    Running,
-    Completed,
-    Failed(String),
+ Pending,
+ Running,
+ Completed,
+ Failed(String),
 }
 
 fn describe(status: Status) -> String {
-    match status {
-        Status::Pending => "pending".to_string(),
-        Status::Running => "running".to_string(),
-        Status::Completed => "completed".to_string(),
-        Status::Failed(msg) => format!("failed: {}", msg),
-    }
+ match status {
+ Status::Pending => "pending".to_string(),
+ Status::Running => "running".to_string(),
+ Status::Completed => "completed".to_string(),
+ Status::Failed(msg) => format!("failed: {}", msg),
+ }
 }
 ```
 
-### Q-075: 避免在公开 API 中暴露内部类型
+### Q-075: Avoid exposing internal types in open API
 
 ```rust
 mod internal {
-    pub struct InternalState { /* ... */ }
+ pub struct InternalState { /* ... */ }
 }
 
 pub struct PublicHandle(internal::InternalState);
 ```
 
-### Q-076: 使用恰当的数据结构
+### Q-076: Use appropriate data structures
 
 ```rust
 let mut unique_items = std::collections::HashSet::new();
 let mut ordered_items = std::collections::BTreeSet::new();
 ```
 
-### Q-077: 避免过度使用 Rc/RefCell
+### Q-077: Avoid overuse of Rc/RefCell
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -880,60 +880,59 @@ use std::sync::{Arc, Mutex};
 let shared = Arc::new(Mutex::new(0));
 ```
 
-### Q-078: 使用 cargo clippy 检查代码质量
+### Q-078: Check code quality with cargo clippy
 
 ```bash
 cargo clippy
 cargo clippy --fix
 ```
 
-### Q-079: 编写属性测试
+### Q-079: Write Attribute Test
 
 ```rust
 use proptest::prelude::*;
 
 proptest! {
-    #[test]
-    fn test_reverse_twice(s: String) {
-        let reversed: String = s.chars().rev().collect();
-        let double_reversed: String = reversed.chars().rev().collect();
-        assert_eq!(s, double_reversed);
-    }
+ #[test]
+ fn test_reverse_twice(s: String) {
+ let reversed: String = s.chars().rev().collect();
+ let double_reversed: String = reversed.chars().rev().collect();
+ assert_eq!(s, double_reversed);
+ }
 }
 ```
 
-### Q-080: 定期审查和重构
+### Q-080: Periodic review and restructuring
 
 ```rust
-// 定期检查：
-// 1. 函数是否过长？
-// 2. 类型是否承担过多职责？
-// 3. 是否有重复代码？
-// 4. 命名是否清晰？
-// 5. 错误处理是否一致？
-// 6. 文档是否完整？
+// Periodic inspection:
+// 1. Is the function too long??
+// 2. Type overburdened?
+// 3. Is there a duplicate code??
+// 4. Is the name clear??
+// 5. Consistency of error treatment?
+// 6. Complete Document?
 
-// 使用工具分析：
-// cargo tarpaulin  # 代码覆盖率
-// cargo bench      # 性能分析
+// Use tool analysis:
+// cargo tarpaulin # Code Coverage
+// cargo bench # Performance Analysis
 ```
 
 ---
 
-## 规范速查表
+## Standardized Quick Checklist
 
-| 类别 | 规则数 | 说明 |
+| Category | Number of rules | Annotations |
 |-----|-------|------|
-| N-命名规范 | 20 | 变量、常量、函数、类型命名 |
-| F-代码格式 | 15 | 格式化、注释、import 排序 |
-| E-错误处理 | 15 | 错误类型、传播、日志记录 |
-| D-文档规范 | 15 | API 文档、模块文档、示例 |
-| Q-代码质量 | 15 | 性能、可读性、可维护性 |
+| N - Name code. | 20 | Variables, Constants, Functions, Type Naming |
+| F-code format | 15 | Formatting, Comment, Report Sorting |
+| E - Error handling. | 15 | Error type, dissemination, log recording |
+| D - Document code. | 15 | API documents, modular documents, examples |
+| Queen - Code quality. | 15 | Performance, readability, maintenance |
 
 ---
 
-## 关联技能
-- `rust-coding` - 编码规范基础
-- `rust-anti-pattern` - 反模式识别
-- `rust-learner` - Rust 学习路径
-
+## Related skills
+- Coding standards
+- Anti-pattern recognition
+- Rust learning path

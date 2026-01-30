@@ -1,24 +1,24 @@
 ---
 name: rust-gpu
-description: "GPU 内存与计算专家。处理 CUDA, OpenCL, GPU memory, compute shader, memory coalescing, zero-copy, 显存管理, 异构计算"
+description: "GPU memory and compute: CUDA, OpenCL, GPU memory, compute shaders, memory coalescing, zero-copy, VRAM management, heterogeneous computing"
 globs: ["**/*.rs"]
 ---
 
-# GPU 内存与计算
+# GPU Memory and Compute
 
-## 核心问题
+## Core issues
 
-**如何在 Rust 中高效管理 GPU 内存和异构计算？**
+**Key question:** How do we manage GPU memory and heterogeneous compute efficiently in Rust?
 
-GPU 计算需要特殊的内存管理策略和同步机制。
+GPU computing requires specialized memory management and synchronization.
 
 ---
 
-## GPU 内存架构
+## GPU memory architecture
 
 ```
 ┌─────────────────────────────────────────┐
-│              GPU 显存                    │
+│               GPU memory                │
 ├─────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐       │
 │  │   Global    │  │   Shared    │       │
@@ -32,36 +32,36 @@ GPU 计算需要特殊的内存管理策略和同步机制。
 │  └─────────────┘  └─────────────┘       │
 └─────────────────────────────────────────┘
         ↓                    ↑
-   CPU (通过 PCIe)      GPU 计算单元
+   CPU (via PCIe)        GPU compute units
 ```
 
 ---
 
-## 内存类型对比
+## Memory type comparison
 
-| 内存类型 | 位置 | 延迟 | 大小 | 用途 |
+| Memory type | Location | Latency | Size | Use |
 |---------|------|------|------|------|
-| Global | VRAM | 高 | 大 | 输入/输出数据 |
-| Shared | SMEM | 低 | 小 | 线程块内通信 |
-| Constant | 缓存 | 中 | 中 | 只读数据 |
-| Local | 寄存器/VRAM | 高 | 小 | 线程私有 |
-| Register | SM | 最低 | 极小 | 线程私有 |
+| Global | VRAM | High | Large | Input/output data |
+| Shared | SMEM | Low | Small | Intra-block communication |
+| Constant | Cache | Medium | Medium | Read-only data |
+| Local | Registers/VRAM | High | Small | Per-thread private |
+| Register | SM | Lowest | Very small | Per-thread private |
 
 ---
 
-## CUDA 内存管理 (rust-cuda)
+## CUDA memory management (rust-cuda)
 
 ```rust
-// 使用 rust-cuda 或 cuda-sys
+// Use rust-cuda or cuda-sys
 use cuda_sys::ffi::*;
 
-// 设备内存分配
+// Device memory allocation
 let mut d_ptr: *mut f32 = std::ptr::null_mut();
 unsafe {
     cudaMalloc(&mut d_ptr as *mut *mut f32, size * std::mem::size_of::<f32>())
 };
 
-// 主机到设备拷贝
+// Host-to-device copy
 unsafe {
     cudaMemcpy(
         d_ptr as *mut c_void,
@@ -71,7 +71,7 @@ unsafe {
     );
 };
 
-// 设备到主机拷贝
+// Device-to-host copy
 let mut h_result: Vec<f32> = vec![0.0; size];
 unsafe {
     cudaMemcpy(
@@ -82,7 +82,7 @@ unsafe {
     );
 };
 
-// 释放设备内存
+// Free device memory
 unsafe {
     cudaFree(d_ptr as *mut c_void);
 };
@@ -90,21 +90,21 @@ unsafe {
 
 ---
 
-## 零拷贝内存
+## Zero-copy memory
 
 ```rust
-// 零拷贝：共享主机和设备内存
+// Zero-copy: shared host and device memory
 let mut h_ptr: *mut f32 = std::ptr::null_mut();
 
-// 使用 cudaMallocHost 分配固定内存（页锁定）
+// Allocate pinned host memory (page-locked)
 unsafe {
     cudaMallocHost(&mut h_ptr as *mut *mut f32, size * std::mem::size_of::<f32>())
 };
 
-// 固定内存可以直接被 GPU 访问，无需拷贝
-// 但会影响系统内存压力
+// Pinned memory can be accessed directly by the GPU
+// but increases pressure on system memory
 
-// 使用 cudaMemcpyAsync 进行异步拷贝（与计算重叠）
+// Use cudaMemcpyAsync for async copy (overlap with compute)
 let stream: cudaStream_t = std::ptr::null_mut();
 unsafe {
     cudaMemcpyAsync(
@@ -116,7 +116,7 @@ unsafe {
     );
 };
 
-// 同步等待
+// Synchronize
 unsafe {
     cudaStreamSynchronize(stream);
 };
@@ -124,34 +124,33 @@ unsafe {
 
 ---
 
-## 统一内存 (Unified Memory)
+## Unified memory
 
 ```rust
-// 使用统一内存，CPU 和 GPU 自动管理数据迁移
+// Unified memory: CPU and GPU manage migration automatically
 let mut unified_ptr: *mut f32 = std::ptr::null_mut();
 
 unsafe {
-    // 分配统一内存
+    // Allocate unified memory
     cudaMallocManaged(&mut unified_ptr as *mut *mut f32, size * std::mem::size_of::<f32>());
 };
 
-// CPU 访问
+// CPU access
 unsafe {
     for i in 0..size {
         *unified_ptr.add(i) = i as f32;
     }
 };
 
-// GPU 访问（自动迁移到设备）
-// 调用 CUDA kernel
+// GPU access (auto-migrates to device)
 launch_kernel(unified_ptr, size);
 
-// CPU 访问结果（自动迁移回主机）
+// CPU access results (auto-migrates back)
 unsafe {
     println!("Result: {}", unified_ptr.add(0).read());
 };
 
-// 释放
+// Free
 unsafe {
     cudaFree(unified_ptr as *mut c_void);
 };
@@ -159,48 +158,48 @@ unsafe {
 
 ---
 
-## 内存合并访问
+## Memory coalescing
 
 ```rust
-// 合并访问模式 - 优化全局内存带宽
-// ❌ 错误：非合并访问
+// Coalesced access to optimize global memory bandwidth
+// ❌ Non-coalesced access
 __global__ void bad_access(float* data) {
-    int idx = threadIdx.x + blockIdx.x * 32; // 跨步访问
-    float value = data[idx * 32];  // 每个线程访问间隔 32 * sizeof(float)
+    int idx = threadIdx.x + blockIdx.x * 32; // Strided access
+    float value = data[idx * 32];  // Each thread strides by 32
 }
 
-// ✅ 正确：合并访问
+// ✅ Coalesced access
 __global__ void coalesced_access(float* data) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x; // 连续访问
-    float value = data[idx];  // 所有线程连续访问
+    int idx = threadIdx.x + blockIdx.x * blockDim.x; // Contiguous access
+    float value = data[idx];  // Threads access consecutive elements
 }
 ```
 
 ---
 
-## 共享内存使用
+## Shared memory usage
 
 ```rust
-// 使用共享内存减少全局内存访问
+// Use shared memory to reduce global memory access
 __global__ void shared_memory_reduce(float* input, float* output) {
-    __shared__ float sdata[256];  // 每个块 256 字节共享内存
-    
+    __shared__ float sdata[256];  // 256 bytes per block
+
     int tid = threadIdx.x;
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    // 从全局内存加载到共享内存
+
+    // Load from global memory into shared memory
     sdata[tid] = input[idx];
     __syncthreads();
-    
-    // 规约计算
+
+    // Reduction
     for (int s = blockDim.x / 2; s > 0; s >>= 1) {
         if (tid < s) {
             sdata[tid] += sdata[tid + s];
         }
         __syncthreads();
     }
-    
-    // 写回结果
+
+    // Write back result
     if (tid == 0) {
         output[blockIdx.x] = sdata[0];
     }
@@ -209,46 +208,45 @@ __global__ void shared_memory_reduce(float* input, float* output) {
 
 ---
 
-## 内存对齐
+## Memory alignment
 
 ```rust
-// 内存对齐优化
-const size_t ALIGNMENT = 256;  // 256 字节对齐
+// Memory alignment optimization
+const size_t ALIGNMENT = 256;  // 256-byte alignment
 
-// 使用 cudaMalloc 返回的指针已经对齐
-// 但自定义数据结构需要对齐
+// cudaMalloc returns aligned pointers
+// but custom structs must be aligned
 struct alignas(256) AlignedData {
-    float4 position;  // 16 字节
-    float4 normal;    // 16 字节
-    // ... 自动填充到 256 字节
+    float4 position;  // 16 bytes
+    float4 normal;    // 16 bytes
+    // ... padding to 256 bytes
 };
 
-// 检查对齐
+// Check alignment
 assert(((uintptr_t)ptr % ALIGNMENT) == 0);
 ```
 
 ---
 
-## 性能优化检查表
+## Performance checklist
 
-| 优化项 | 检查点 |
+| Item | Checkpoint |
 |-------|-------|
-| 内存合并 | 线程访问连续内存 |
-| 共享内存 | 减少全局内存访问 |
-| 内存对齐 | 256 字节对齐 |
-| 异步操作 | 计算与传输重叠 |
-| 固定内存 | 使用页锁定内存 |
-| 批处理 | 减少内核启动开销 |
+| Memory coalescing | Threads access contiguous memory |
+| Shared memory | Reduce global memory access |
+| Alignment | 256-byte alignment |
+| Async ops | Overlap compute and transfer |
+| Pinned memory | Use page-locked memory |
+| Batching | Reduce kernel launch overhead |
 
 ---
 
-## 与其他技能关联
+## Related skills
 
 ```
 rust-gpu
     │
-    ├─► rust-performance → 性能优化
-    ├─► rust-unsafe → 底层内存操作
-    └─► rust-embedded → no_std 设备
+    ├─► rust-performance → performance optimization
+    ├─► rust-unsafe → low-level memory operations
+    └─► rust-embedded → no_std devices
 ```
-

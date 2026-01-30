@@ -1,172 +1,168 @@
 ---
 name: rust-anti-pattern
-description: "Rust 反模式与常见错误。处理代码审查、clone、unwrap、String 用法、迭代器等问题。触发词：anti-pattern, common mistake, clone, unwrap, code review, 代码异味, 常见错误, 代码审查, refactor, 重构"
+description: "Rust anti-patterns and common errors. Triggers: anti-pattern, common mistake, clone, unwrap, code review, refactor"
 globs: ["**/*.rs"]
 ---
 
-# Rust 反模式与常见错误
+# Rust Anti-patterns and Common Errors
 
-## 核心问题
+## Core issues
 
-**这个模式是否掩盖了设计问题？**
+**Key question:** Does this code hide a design problem?
 
-代码能跑不代表代码好。反模式是"能用但不该用"的模式。
-
----
-
-## Top 5 新手常犯错误
-
-| 排名 | 错误 | 正确做法 |
-|-----|------|---------|
-| 1 | 用 `.clone()` 躲避借用检查 | 使用引用 |
-| 2 | 生产代码用 `.unwrap()` | 用 `?` 或 `with_context()` |
-| 3 | 什么都是 `String` | 用 `&str`，必要时用 `Cow<str>` |
-| 4 | 索引循环 | 用迭代器 `.iter()`, `.enumerate()` |
-| 5 | 与生命周期对抗 | 重新设计数据结构 |
+Working code can still be non-idiomatic. Use anti-patterns as a guide for refactoring.
 
 ---
 
-## 常见反模式
+## Top 5 mistakes
 
-### 反模式 1：到处 clone
+| Rank | Mistake | Better |
+|------|----------------------------|------------------------------------|
+| 1 | `.clone()` to avoid borrowing | Use references |
+| 2 | `.unwrap()` in production | Use `?` or `context()` |
+| 3 | `String` everywhere | Use `&str` or `Cow<str>` |
+| 4 | Index-based loops | Use `.iter()` / `.enumerate()` |
+| 5 | Fighting lifetimes | Redesign data structures |
+
+---
+
+## Common anti-patterns
+
+### Anti-pattern 1: Clone everywhere
 
 ```rust
-// ❌ 不好：躲避借用检查
+// ❌ Hides borrowing issues
 fn process(user: User) {
-    let name = user.name.clone();  // 为什么需要 clone？
-    // ...
+    let name = user.name.clone(); // Why clone?
+ // ...
 }
 
-// ✅ 好：直接使用引用
+// ✅ Borrow directly
 fn process(user: &User) {
-    let name = &user.name;  // 借用即可
+    let name = &user.name; // Just borrow it.
 }
 ```
 
-**什么时候真的需要 clone：**
-- 确实需要独立副本
-- API 设计需要 owned 值
-- 数据流向需要
+When do you really need a clone?
 
-### 反模式 2：生产代码用 unwrap
+- You need an independent copy.
+- API requires owned values.
+- Data must outlive the source.
+
+### Anti-pattern 2: unwrap everywhere
 
 ```rust
-// ❌ 不好：可能 panic
+// ❌ Panics in production
 let config = File::open("config.json").unwrap();
 
-// ✅ 好：传播错误
+// ✅ Propagate errors
 let config = File::open("config.json")?;
 
-// ✅ 好：带上下文
+// ✅ Add context
 let config = File::open("config.json")
     .context("failed to open config")?;
 ```
 
-### 反模式 3：String  everywhere
+### Anti-pattern 3: String everywhere
 
 ```rust
-// ❌ 不好：不必要的分配
+// ❌ Unnecessary allocation
 fn greet(name: String) {
-    println!("Hello, {}", name);
+ println!("Hello, {}", name);
 }
 
-// ✅ 好：借用即可
+// ✅ Borrow instead
 fn greet(name: &str) {
-    println!("Hello, {}", name);
+ println!("Hello, {}", name);
 }
 
-// 确实需要 String 的场景：需要持有或修改
+// Use String when you need to own or mutate.
 ```
 
-### 反模式 4：索引循环
+### Anti-pattern 4: Index loops
 
 ```rust
-// ❌ 不好：容易出错，效率低
+// ❌ Easy to make mistakes, less idiomatic
 for i in 0..items.len() {
-    println!("{}: {}", i, items[i]);
+ println!("{}: {}", i, items[i]);
 }
 
-// ✅ 好：直接迭代
+// ✅ Iterate directly
 for item in &items {
-    println!("{}", item);
+ println!("{}", item);
 }
 
-// ✅ 好：需要索引
+// ✅ Index required
 for (i, item) in items.iter().enumerate() {
-    println!("{}: {}", i, item);
+ println!("{}: {}", i, item);
 }
 ```
 
-### 反模式 5：过度 unsafe
+### Anti-pattern 5: Excess unsafe
 
 ```rust
-// ❌ 不好：为了省事用 unsafe
+// ❌ Unnecessary unsafe
 unsafe {
-    let ptr = data.as_mut_ptr();
-    // ... 复杂的内存操作
+ let ptr = data.as_mut_ptr();
+ // ... Complex Memory Operations
 }
 
-// ✅ 好：寻找安全的抽象
+// ✅ Prefer safe abstractions
 let mut data: Vec<u8> = vec![0; size];
-// Vec 已经处理了内存管理
+// Vec manages memory safely
 ```
 
 ---
 
-## 代码异味速查
+## Code smells
 
-| 现象 | 暗示问题 | 重构方向 |
-|-----|---------|---------|
-| 很多 `.clone()` | 所有权不清晰 | 明确数据流 |
-| 很多 `.unwrap()` | 错误处理缺失 | 添加 Result 处理 |
-| 很多 `pub` 字段 | 封装被破坏 | 私有 + 访问器 |
-| 深度嵌套 | 逻辑复杂 | 提取方法 |
-| 函数过长 (>50行) | 职责过多 | 拆分职责 |
-| 巨大的枚举 | 缺少抽象 | Trait + 类型 |
+| Smell | Implicit question | Fix |
+|------------------|--------------|------------------|
+| Many `.clone()` | Ownership unclear | Clarify data flow |
+| Many `.unwrap()` | Error handling missing | Use Result/Context |
+| Many `pub` fields | No encapsulation | Make fields private |
+| Deep nesting | Logic is hard to follow | Extract functions |
+| Very long functions | Too many responsibilities | Split functions |
+| Huge enums | Missing abstraction | Use traits/types |
 
 ---
 
-## 过时写法 → 现代写法
+## Outdated patterns
 
-| 过时 | 现代 |
-|-----|------|
-| 索引循环 `.items[i]` | `.iter().enumerate()` |
-| `collect::<Vec<_>>()` 然后再遍历 | 链式迭代器 |
+| Obsolete | Modern |
+|----------------------------------|-----------------------|
+| Index loop `.items[i]` | `.iter().enumerate()` |
+| `collect::<Vec<_>>()` too early | Keep iterators lazy |
 | `lazy_static!` | `std::sync::OnceLock` |
-| `mem::transmute` 转换 | `as` 或 `TryFrom` |
-| 自定义链表 | `Vec` 或 `VecDeque` |
-| 手动 unsafe cell | `Cell`, `RefCell` |
+| `mem::transmute` | `as` or `TryFrom` |
+| Custom linked list | `Vec` or `VecDeque` |
+| Manual mutation hacks | `Cell`, `RefCell` |
 
 ---
 
-## 代码审查清单
+## Code review checklist
 
-- [ ] 没有无理由的 `.clone()`
-- [ ] 库代码没有 `.unwrap()`
-- [ ] 没有带不变式的 `pub` 字段
-- [ ] 迭代器可用时不使用索引循环
-- [ ] `&str` 够用时不使用 `String`
-- [ ] 没有忽略 `#[must_use]` 警告
-- [ ] `unsafe` 有 SAFETY 注释
-- [ ] 没有巨型函数 (>50 行)
+- [ ] No unnecessary `.clone()`
+- [ ] Library code avoids `unwrap()`
+- [ ] No `pub` fields without a reason
+- [ ] Avoid index loops when iterators work
+- [ ] Avoid `transmute` unless strictly necessary
+- [ ] Cancellation/cleanup is handled
+- [ ] Every `unsafe` has a SAFETY comment
+- [ ] No giant functions (>50 lines)
 
 ---
 
-## 问自己这些问题
+## Ask yourself
 
-1. **这段代码在对抗 Rust 还是在配合 Rust？**
-   - 对抗 → 重新设计
-   - 配合 → 继续
+1. **Is this code fighting Rust?**
+ - If yes, redesign.
 
-2. **这个 clone 是必要的吗？**
-   - 为了躲避借用 → 错误信号
-   - 确实需要 → 保留
+2. **Is this line necessary?**
+ - If it's only to dodge borrowing, rethink the design.
 
-3. **这个 unwrap 会导致 panic 吗？**
-   - 可能 → 用 `?`
-   - 绝不会 → `expect("reason")`
+3. **Will this unwrap panic?**
+ - Use `?` or `context()` instead.
 
-4. **有更 idiomatic 的方式吗？**
-   - 参考其他 Rust 代码
-   - 查阅 std 库 API
-
+4. **Is there a more idiomatic way?**
+ - Look at std library APIs and community patterns.

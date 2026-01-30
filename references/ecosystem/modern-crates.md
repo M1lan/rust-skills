@@ -21,20 +21,20 @@ use clap::{Parser, Subcommand};
 #[command(name = "myapp")]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[command(subcommand)]
-    command: Commands,
+ #[command(subcommand)]
+ command: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Process files
-    Process {
-        /// Input file
-        #[arg(short, long)]
-        input: String,
-    },
-    /// Show status
-    Status,
+ /// Process files
+ Process {
+ /// Input file
+ #[arg(short, long)]
+ input: String,
+ },
+ /// Show status
+ Status,
 }
 ```
 
@@ -56,13 +56,13 @@ use tokio::time::{interval, sleep};
 use std::time::Duration;
 
 async fn event_stream() -> impl tokio_stream::Stream<Item = Event> {
-    stream! {
-        let mut interval = interval(Duration::from_secs(1));
-        loop {
-            interval.tick().await;
-            yield Event::Tick;
-        }
-    }
+ stream! {
+ let mut interval = interval(Duration::from_secs(1));
+ loop {
+ interval.tick().await;
+ yield Event::Tick;
+ }
+ }
 }
 ```
 

@@ -1,61 +1,61 @@
 ---
 name: rust-lifetime-complex
-description: "高级生命周期专家。处理 HRTB, GAT, 'static 约束, dyn trait object, 泛型边界冲突等问题。触发词：lifetime, HRTB, GAT, 'static, dyn, trait object, one type is more general, 生命周期, 类型约束"
+description: "Advanced lifetimes: HRTB, GAT, 'static constraints, dyn trait objects, and object safety"
 globs: ["**/*.rs"]
 ---
 
-# 高级生命周期与类型系统
+# Advanced Lifetimes and the Type System
 
-## 核心问题
+## Core issues
 
-**为什么这个类型转换就是编译不过？**
+**Key question:** Why can't this type conversion compile?
 
-类型系统的边界往往出乎意料。
+The boundaries of type systems are often unexpected.
 
 ---
 
-## HRTB + dyn Trait Object 冲突
+## HRTB + dyn Trait Object Conflict
 
-### 问题代码
+### Problem code
 
 ```rust
-// ❌ HRTB 不能装进 dyn trait object
+// ❌ HRTB We can't load it. dyn trait object
 pub type ConnFn<T> =
-    dyn for<'c> FnOnce(&'c mut PgConnection) -> BoxFuture<'c, T> + Send;
+ dyn for<'c> FnOnce(&'c mut PgConnection) -> BoxFuture<'c, T> + Send;
 
 let f = Box::new(move |conn: &mut PgConnection| -> BoxFuture<'_, i64> {
-    Box::pin(async { Ok(42) })
-}) as Box<ConnFn<i64>>;  // ❌ "one type is more general than the other"
+ Box::pin(async { Ok(42) })
+}) as Box<ConnFn<i64>>; // ❌ "one type is more general than the other"
 ```
 
-### 原因
+### Reason
 
-- 闭包有**具体生命周期** `'_`
-- `ConnFn<T>` 要求**任意生命周期** `for<'c>`
-- 具体不能自动变成通用
+- The closure captures a specific lifetime.
+- The trait object requires a single concrete type.
+- It does not become universally quantified by default.
 
-### 解决：把 HRTB 留在函数边界
+### Fix: keep HRTB at the function boundary
 
 ```rust
-// ✅ HRTB 只在调用点使用泛型
+// ✅ HRTB used at the call boundary
 impl Db {
-    pub async fn with_conn<F, T, Fut>(&self, f: F) -> Result<T, DbError>
-    where
-        F: for<'c> FnOnce(&'c mut PgConnection) -> Fut + Send,
-        Fut: Future<Output = Result<T, DbError>> + Send,
-    {
-        let mut conn = self.pool.acquire().await?;
-        f(&mut conn).await
-    }
+ pub async fn with_conn<F, T, Fut>(&self, f: F) -> Result<T, DbError>
+ where
+ F: for<'c> FnOnce(&'c mut PgConnection) -> Fut + Send,
+ Fut: Future<Output = Result<T, DbError>> + Send,
+ {
+ let mut conn = self.pool.acquire().await?;
+ f(&mut conn).await
+ }
 }
 ```
 
-### 使用
+### Use
 
 ```rust
 db.with_conn(|conn| async move {
-    // 这里 'c 由调用时确定，不需要 dyn
-    sqlx::query("...").fetch_all(conn).await
+ // 'c is introduced at the call; no dyn needed here.
+ sqlx::query("...").fetch_all(conn).await
 }).await
 ```
 
@@ -63,152 +63,151 @@ db.with_conn(|conn| async move {
 
 ## GAT + dyn Trait Object
 
-### 问题代码
+### Problem code
 
 ```rust
-// ❌ GAT 不能和 dyn Trait 一起用
+// ❌ GAT I can't. dyn Trait Together.
 trait ReportRepo: Send + Sync {
-    type Row<'r>: RowView<'r>;  // ❌ GAT
+ type Row<'r>: RowView<'r>; // ❌ GAT
 }
 
-let repo: Arc<dyn ReportRepo> = ...;  // ❌ 编译错误
+let repo: Arc<dyn ReportRepo> = ...; // ❌ Compiler error
 ```
 
-### 错误信息
+### Error message
 
 ```
 error[E0038]: the trait cannot be made into an object
 because associated type `Row` has generic parameters
 ```
 
-### 原因
+### Reason
 
-- `dyn ReportRepo` 需要统一大小
-- `Row<'r>` 对不同 `'r` 有不同大小
-- 对象安全规则禁止
+- Trait objects require a single concrete vtable layout.
+- The associated type depends on a lifetime, so layout varies.
+- This violates object safety rules.
 
-### 解决：分层架构
+### Resolve: Layer structure
 
 ```rust
-// 内部：GAT + 借用（高性能）
+// Internal: GAT + borrowing (high performance)
 trait InternalRepo {
-    type Row<'r>: RowView<'r>;
-    async fn query<'c>(&'c self) -> Vec<Self::Row<'c>>;
+ type Row<'r>: RowView<'r>;
+ async fn query<'c>(&'c self) -> Vec<Self::Row<'c>>;
 }
 
-// 外部：owned DTO（兼容 GraphQL）
+// External: owned DTO (GraphQL-friendly)
 pub trait PublicRepo: Send + Sync {
-    async fn query(&self) -> Vec<ReportDto>;  // owned
+ async fn query(&self) -> Vec<ReportDto>; // owned
 }
 
-// 适配层
+// Adapter layer
 impl PublicRepo for PgRepo {
-    async fn query(&self) -> Vec<ReportDto> {
-        let rows = self.internal.query().await;  // 借用内部
-        rows.into_iter().map(|r| r.to_dto()).collect()
-    }
+ async fn query(&self) -> Vec<ReportDto> {
+ let rows = self.internal.query().await; // Use the inside.
+ rows.into_iter().map(|r| r.to_dto()).collect()
+ }
 }
 ```
 
-### 架构图
+### Chart
 
 ```
-GraphQL Layer (需要 'static)
-         ↓
-    PublicRepo Trait (owned)
-         ↓
-    Adapter (转换 borrowed → owned)
-         ↓
-    InternalRepo Trait (GAT, borrowed)
-         ↓
-    DB Implementation
+GraphQL layer (requires 'static)
+ ↓
+ PublicRepo Trait (owned)
+ ↓
+ Adapter (Convert borrowed → owned)
+ ↓
+ InternalRepo Trait (GAT, borrowed)
+ ↓
+ DB Implementation
 ```
 
 ---
 
-## 'static 要求冲突
+## 'static demands conflict
 
-### 场景
+### Scenario
 
 ```rust
-// async-graphql 要求 schema 是 'static
-// 但 repo 方法返回借用数据
+// async-graphql requires 'static
+// but the repo method returns borrowed data
 async fn resolve(&self) -> Result<&'r Row<'r>> {
-    // ❌ 'r 不能 outlive 'static
+ // ❌ 'r cannot outlive 'static
 }
 ```
 
-### 解决：owned 数据
+### Fix: return owned data
 
 ```rust
-// 不要在 API 层暴露借用
+// Do not expose borrows at the API boundary
 async fn resolve(&self) -> Result<ReportDto> {
-    let row = self.repo.query().await?;  // owned
-    Ok(row.to_dto())
+ let row = self.repo.query().await?; // owned
+ Ok(row.to_dto())
 }
 ```
 
-### 何时例外
+### When?
 
-- 仅在 **非常短期** 的借用（如单次函数调用内）
-- **完全控制** 所有者和借用的生命周期
-- **性能收益显著** 且不可替代
+- Borrow only for **very short** scopes (e.g. within one function).
+- Own data at API boundaries.
+- Use borrowing only when performance gains are significant.
 
 ---
 
-## 常见冲突模式
+## Common conflict patterns
 
-| 模式 | 冲突原因 | 解决 |
+| Pattern | Causes of conflict | Solve |
 |-----|---------|-----|
-| HRTB → dyn | 具体 vs 通用 | 泛型函数替代 dyn |
-| GAT → dyn | 大小不固定 | 分层设计 |
-| 'static + 借用 | 生命周期矛盾 | owned 数据 |
-| async + 生命周期 | 协程持有状态 | drop 借用或 owned |
-| closure 捕获 + Send | 生命周期问题 | 克隆或 'static |
+| HRTB → dyn | Specific vs universal | Keep HRTB at function boundary |
+| GAT → dyn | Not object-safe | Layer the API |
+| 'static + borrow | Lifetime conflict | Return owned data |
+| Async + lifetime | Futures hold state across await | Drop borrows before await |
+| Closure Capture + Send | Lifetime issues | Cloning or 'static |
 
 ---
 
-## 何时放弃借用
+## When to stop borrowing
 
-### 性能 vs 可维护性
+### Performance vs maintainability
 
 ```rust
-// 性能收益 vs 复杂性
+// Performance gains vs complexity
 fn should_borrow() -> bool {
-    // 大数据结构 → 借用
-    // 高频访问 → 借用
-    // 生命周期简单 → 借用
-    
-    // 复杂生命周期 → owned
-    // API 边界 → owned
-    // 异步上下文 → owned
+ // Large data structure → borrow
+ // High-frequency access → borrow
+ // Simple lifetimes → borrow
+ 
+ // Complex lifetimes → owned
+ // API boundary → owned
+ // Async context → owned
 }
 ```
 
-### 经验法则
+### Rules of thumb
 
-1. **API 层**：默认 owned
-2. **内部实现**：按需借用
-3. **性能热点**：考虑借用
-4. **复杂度高时**：退回到 owned
+1. **API layer**: default to owned
+2. **Internal implementation**: borrow when needed
+3. **Performance hotspots**: consider borrowing
+4. **High complexity**: fall back to owned
 
 ---
 
-## 调试技巧
+## Debug techniques
 
-### 编译器错误
+### Compiler errors
 
-| 错误 | 含义 |
+| Error | Meaning |
 |-----|------|
-| "one type is more general" | 试图把具体转通用 |
-| "lifetime may not live long enough" | 借用超出范围 |
-| "cannot be made into an object" | GAT + dyn 不兼容 |
-| "does not live long enough" | 借用被提前释放 |
+| "one type is more general" | Trying to treat a specific type as more general |
+| "lifetime may not live long enough" | Borrow outlives its scope |
+| "cannot be made into an object" | GAT+dyn is incompatible |
+| "does not live long enough" | Borrow ends too early |
 
-### 方法
+### Methodology
 
-1. **最小化**：写出最小复现代码
-2. **标注生命周期**：显式写出所有生命周期
-3. **逐步简化**：去掉抽象，直面问题
-4. **接受现实**：不是所有设计都能编译
-
+1. **Minimize**: produce the smallest repro case
+2. **Annotate lifetimes**: write them explicitly
+3. **Simplify step by step**: remove abstractions
+4. **Accept reality**: not all designs are object-safe or borrow-friendly

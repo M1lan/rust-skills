@@ -1,160 +1,160 @@
 ---
 name: rust-mutability
-description: "可变性专家。处理 E0596, E0499, E0502, interior mutability, Cell, RefCell, Mutex, RwLock, borrow conflict, 可变性, 内部可变性, 借用冲突"
+description: "Mutability and interior mutability: E0596/E0499/E0502, Cell/RefCell, Mutex/RwLock, borrow conflicts"
 globs: ["**/*.rs"]
 ---
 
-# 可变性
+# Mutability and Interior Mutability
 
-## 核心问题
+## Core issues
 
-**数据需要变化吗？谁来控制变化？**
+**Key question:** Does the data need to change, and who controls the change?
 
-可变性是程序状态改变的方式，需要谨慎设计。
+Mutability changes program state and requires careful design.
 
 ---
 
-## 可变性类型
+## Mutability types
 
-| 类型 | 控制者 | 线程安全 | 使用场景 |
+| Type | Controller | Thread-safe | Use case |
 |-----|-------|---------|---------|
-| `&mut T` | 外部调用者 | Yes | 标准可变借用 |
-| `Cell<T>` | 内部 | No | Copy 类型的内部可变性 |
-| `RefCell<T>` | 内部 | No | 非 Copy 类型的内部可变性 |
-| `Mutex<T>` | 内部 | Yes | 多线程内部可变性 |
-| `RwLock<T>` | 内部 | Yes | 多线程读写锁 |
+| `&mut T` | External caller | Yes | Standard mutable borrowing |
+| `Cell<T>` | Internal | No | Copy-type interior mutability |
+| `RefCell<T>` | Internal | No | Non-Copy interior mutability |
+| `Mutex<T>` | Internal | Yes | Cross-thread interior mutability |
+| `RwLock<T>` | Internal | Yes | Many readers, few writers |
 
 ---
 
-## 借用规则
+## The rules
 
 ```
-任何时刻只能有：
-├─ 多个 &T（不可变借用）
-└─ 或者一个 &mut T（可变借用）
+At any time:
+├─ Many `&T` (immutable borrows)
+└─ Or one `&mut T` (mutable borrow)
 
-两者不能同时存在
+They cannot coexist.
 ```
 
 ---
 
-## 错误码速查
+## Error code quick check
 
-| 错误码 | 含义 | 不要说 | 要问 |
+| Error Code | Meaning | Don't say | Ask |
 |-------|------|--------|------|
-| E0596 | 无法获取可变引用 | "add mut" | 这个真的需要可变吗？ |
-| E0499 | 多个可变借用冲突 | "split borrows" | 数据结构设计对吗？ |
-| E0502 | 借用冲突 | "separate scopes" | 为什么需要同时借用？ |
-| RefCell panic | 运行时借用错误 | "use try_borrow" | 运行时检查合适吗？ |
+| E0596 | Cannot borrow mutably | "add mut" | Does this need to change? |
+| E0499 | Multiple mutable borrows | "split borrows" | Is the data structured correctly? |
+| E0502 | Mutable + immutable overlap | "separate scopes" | Why do you need both at once? |
+| RefCell panic | Runtime borrow error | "use try_borrow" | Is runtime checking acceptable? |
 
 ---
 
-## 何时用内部可变性
+## When to use interior mutability
 
 ```rust
-// 情况1：从 &self 获取 &mut T
+// Situation 1: mutate from &self
 struct Config {
-    counters: RefCell<HashMap<String, u32>>,
+ counters: RefCell<HashMap<String, u32>>,
 }
 
 impl Config {
-    fn increment(&self, key: &str) {
-        // 从不可变引用获取可变引用
-        let mut counters = self.counters.borrow_mut();
-        *counters.entry(key.to_string()).or_insert(0) += 1;
-    }
+ fn increment(&self, key: &str) {
+     // Borrow mutably via RefCell
+     let mut counters = self.counters.borrow_mut();
+     *counters.entry(key.to_string()).or_insert(0) += 1;
+ }
 }
 
-// 情况2：Copy 类型
+// Situation 2: Copy type
 struct State {
-    count: Cell<u32>,
+ count: Cell<u32>,
 }
 
 impl State {
-    fn increment(&self) {
-        self.count.set(self.count.get() + 1);
-    }
+ fn increment(&self) {
+     self.count.set(self.count.get() + 1);
+ }
 }
 ```
 
 ---
 
-## 线程安全选择
+## Thread safety selection
 
 ```rust
-// 简单计数器 → 原子类型
+// Simple counter → Atomic Type
 let counter = AtomicU64::new(0);
 
-// 复杂数据 → Mutex 或 RwLock
+// Complex Data → Mutex or RwLock
 let data = Mutex::new(HashMap::new());
 
-// 读多写少 → RwLock
+// Many reads, some writes → RwLock
 let data = RwLock::new(HashMap::new());
 ```
 
 ---
 
-## 常见问题
+## Common problems
 
-### 借用冲突
+### Borrow conflict
 
 ```rust
-// ❌ 借用冲突
+// ❌ Borrow conflict
 let mut s = String::new();
 let r1 = &s;
 let r2 = &s;
-let r3 = &mut s; // 冲突！
+let r3 = &mut s; // Conflict!
 
-// ✅ 分开作用域
+// ✅ Separate fields
 let mut s = String::new();
 {
     let r1 = &s;
-    // 使用 r1
+    // Use r1
 }
 let r3 = &mut s;
-// 使用 r3
+// Use r3
 ```
 
 ### RefCell panic
 
 ```rust
-// ❌ 双重可变借用
+// ❌ Double mutable borrow
 let cell = RefCell::new(vec![]);
 let mut_borrow = cell.borrow_mut();
 let another = cell.borrow(); // panic!
 
-// ✅ 用 try_borrow 避免 panic
+// ✅ Use try_borrow to avoid panic
 if let Ok(mut_borrow) = cell.try_borrow_mut() {
-    // 安全使用
+ // Safe use
 }
 ```
 
 ---
 
-## 设计建议
+## Design checklist
 
-1. **变异是必要的吗？**
-   - 也许可以返回新值
-   - 也许可以 immutable 构造
+1. Is mutation necessary?
+ - Could you return a new value instead?
+ - Can it be immutable?
 
-2. **谁控制变异？**
-   - 外部调用者 → `&mut T`
-   - 内部逻辑 → 内部可变性
-   - 并发访问 → 同步原语
+2. Who controls mutation?
+ - External caller
+ - Internal logic (interior mutability)
+ - Thread-safe synchronization
 
-3. **线程上下文？**
-   - 单线程 → Cell/RefCell
-   - 多线程 → Mutex/RwLock/Atomic
+3. Concurrency scope?
+ - Single-thread
+ - Multi-thread
 
 ---
 
-## 向上追踪
+## Follow-up
 
-借用冲突持续时：
+If conflicts persist:
 
 ```
-E0499/E0502 (借用冲突)
-    ↑ 问：数据结构设计正确吗？
-    ↑ 查 rust-type-driven：应该拆分数据吗？
-    ↑ 查 rust-concurrency：涉及 async 吗？
+E0499/E0502 (borrow conflict)
+ ↑ Ask: is the data structure right?
+ ↑ rust-type-driven: should we split the data?
+ ↑ rust-concurrency: is async involved?
 ```

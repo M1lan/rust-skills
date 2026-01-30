@@ -1,35 +1,35 @@
 ---
 name: rust-coroutine
-description: "协程与绿色线程专家。处理 generator, suspend/resume, stackful coroutine, stackless coroutine, context switch, 协程, 绿色线程, 上下文切换, 生成器"
+description: "Coroutines and green threads: generators, suspend/resume, stackful vs stackless coroutines, context switching. Triggers: coroutine, green thread, generator, suspend, resume, context switch"
 globs: ["**/*.rs"]
 ---
 
-# 协程与绿色线程
+# Coroutines and Green Threads
 
-## 核心问题
+## Core issues
 
-**如何实现高效的轻量级并发？**
+**Key question:** How do we implement efficient lightweight concurrency?
 
-协程提供用户态的上下文切换，避免内核线程的开销。
+Coroutines provide user-space context switching and avoid kernel-thread overhead.
 
 ---
 
-## 协程 vs 线程
+## Coroutines vs threads
 
-| 特性 | OS 线程 | 协程 |
+| Feature | OS threads | Coroutines |
 |-----|--------|------|
-| 调度 | 内核 | 用户态 |
-| 切换开销 | ~1μs | ~100ns |
-| 数量限制 | 数千 | 数十万 |
-| 栈大小 | 1-8MB | 几 KB |
-| 抢占 | 抢占式 | 协作式 |
+| Scheduling | Kernel | User space |
+| Switch cost | ~1μs | ~100ns |
+| Count | Thousands | Hundreds of thousands |
+| Stack size | 1-8MB | A few KB |
+| Preemption | Preemptive | Cooperative |
 
 ---
 
-## Rust 原生 Generator
+## Rust native generators
 
 ```rust
-// Rust Nightly 的 generator
+// Generators on nightly Rust
 #![feature(generators)]
 #![feature(generator_trait)]
 
@@ -40,7 +40,7 @@ fn simple_generator() -> impl Generator<Yield = i32, Return = ()> {
         yield 1;
         yield 2;
         yield 3;
-        // Generator 完成
+        // Generator completes
     }
 }
 
@@ -60,10 +60,10 @@ fn main() {
 
 ---
 
-## 栈式协程 (Stackful Coroutine)
+## Stackful coroutine
 
 ```rust
-// 使用 stackful 协程库
+// Using a stackful coroutine library
 use corosensei::{Coroutine, Pin, Unpin};
 
 fn runner<'a>(start: bool, coroutine: &'a Coroutine<'_, ()>) {
@@ -86,7 +86,7 @@ fn main() {
     unsafe { pin.as_mut().set_running(true) };
 
     println!("Main: first resume");
-    unsafe { pin.resume(false) }; // false = 不是第一次
+    unsafe { pin.resume(false) }; // false = not the first time
 
     println!("Main: second resume");
     unsafe { pin.resume(false) };
@@ -100,9 +100,9 @@ fn main() {
 
 ---
 
-## 栈式协程设计模式
+## Stackful coroutine patterns
 
-### 1. 协程状态机
+### 1. Coroutine state machine
 
 ```rust
 enum CoroutineState {
@@ -147,7 +147,7 @@ impl StatefulCoroutine {
 }
 ```
 
-### 2. 协程池
+### 2. Coroutine pool
 
 ```rust
 use std::sync::Arc;
@@ -168,13 +168,13 @@ impl CoroutinePool {
     pub fn new(size: usize) -> Self {
         let (sender, receiver) = mpsc::channel();
         let receiver = Arc::new(receiver);
-        
+
         let workers = (0..size)
             .map(|_| {
                 let receiver = Arc::clone(&receiver);
                 thread::spawn(move || {
                     while let Ok(job) = receiver.recv() {
-                        // 处理 job
+                        // Process job
                         let result = process_job(&job);
                         let _ = job.result_tx.send(result);
                     }
@@ -200,36 +200,36 @@ fn process_job(job: &Job) -> Result<Vec<u8>, ()> {
 
 ---
 
-## 栈无关协程 (Stackless Coroutine)
+## Stackless coroutine
 
 ```rust
-// 使用 async/await 实现栈无关协程
+// Use async/await to implement stackless coroutines
 async fn async_task(id: u32) -> u32 {
     println!("Task {} started", id);
-    
-    // 模拟 I/O 操作
+
+    // Simulate I/O
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-    
+
     println!("Task {} resumed", id);
     id * 2
 }
 
 async fn main() {
-    // 并发执行多个协程
+    // Run multiple coroutines concurrently
     let results = futures::future::join_all(
         (0..10).map(|i| async_task(i))
     ).await;
-    
+
     println!("Results: {:?}", results);
 }
 ```
 
 ---
 
-## 上下文切换机制
+## Context switching mechanism
 
 ```rust
-// 手动上下文切换
+// Manual context switching
 use std::arch::asm;
 
 struct Context {
@@ -246,7 +246,7 @@ impl Context {
     unsafe fn new(stack: &mut [u8]) -> Self {
         let stack_top = stack.as_mut_ptr().add(stack.len());
         let rsp = (stack_top as *mut u64).wrapping_sub(1) as u64;
-        
+
         Self {
             rsp,
             r15: 0,
@@ -257,7 +257,7 @@ impl Context {
             rbx: 0,
         }
     }
-    
+
     unsafe fn switch(&mut self, next: &mut Context) {
         asm!(
             "push rbx",
@@ -266,8 +266,8 @@ impl Context {
             "push r13",
             "push r14",
             "push r15",
-            "mov [rdi], rsp",     // 保存当前栈指针
-            "mov rsp, [rsi]",     // 切换到新栈
+            "mov [rdi], rsp",     // Save current stack pointer
+            "mov rsp, [rsi]",     // Switch to new stack
             "pop r15",
             "pop r14",
             "pop r13",
@@ -283,10 +283,10 @@ impl Context {
 
 ---
 
-## 协程调度器
+## Coroutine scheduler
 
 ```rust
-// 简单协程调度器
+// Simple coroutine scheduler
 enum Task {
     Coroutine(fn(&mut Scheduler)),
     Finished,
@@ -323,24 +323,23 @@ impl Scheduler {
 
 ---
 
-## 常见问题
+## Common problems
 
-| 问题 | 原因 | 解决 |
+| Problem | Cause | Fix |
 |-----|------|-----|
-| 协程不执行 | 缺少调度器 | 实现或使用调度器 |
-| 栈溢出 | 递归太深 | 使用堆分配栈 |
-| 内存泄漏 | 任务未完成 | 正确清理协程 |
-| 死锁 | 循环等待 | 避免循环依赖 |
+| Coroutine doesn't run | Missing scheduler | Implement or use a scheduler |
+| Stack overflow | Recursion too deep | Use heap-allocated stacks |
+| Memory leak | Task never completes | Clean up coroutines correctly |
+| Deadlock | Circular waiting | Avoid cyclic dependencies |
 
 ---
 
-## 与其他技能关联
+## Related skills
 
 ```
 rust-coroutine
     │
-    ├─► rust-async → async/await 实现
-    ├─► rust-concurrency → 并发模型
-    └─► rust-performance → 性能优化
+    ├─► rust-async → async/await implementation
+    ├─► rust-concurrency → concurrency model
+    └─► rust-performance → performance optimization
 ```
-

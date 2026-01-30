@@ -1,76 +1,80 @@
 ---
 name: audit
-description: "安全审计和漏洞检测"
+description: "Security audits and vulnerability detection"
 category: security
-triggers: ["audit", "security", "vulnerability", "安全", "漏洞"]
+triggers: ["audit", "security", "vulnerability", "safety"]
 related_skills:
-  - rust-unsafe
-  - rust-ffi
-  - rust-coding
+ - rust-unsafe
+ - rust-ffi
+ - rust-coding
 ---
 
-# Audit 命令
+# Audit Command
 
-## 功能说明
+## Functional description
 
-对 Rust 项目进行安全审计，检测：
-- 依赖漏洞
-- 代码安全风险
-- 隐私泄露
-- 权限问题
+Security audit for Rust projects, checking:
 
-## 使用方法
+- Dependency vulnerabilities
+- Code security risks
+- Privacy leaks
+- Permission issues
+
+## Usage
 
 ```bash
-# 完整审计
+# Full audit
 ./scripts/audit.sh
 
-# 仅依赖检查
+# Dependencies only
 ./scripts/audit.sh --deps
 
-# 仅代码检查
+# Code only
 ./scripts/audit.sh --code
 
-# 生成报告
+# Generate report
 ./scripts/audit.sh --report html
 ```
 
-## 检查项目
+## Checks
 
-### 1. 依赖安全
+### 1. Dependency security
+
 ```bash
 cargo audit
-# 检查已知漏洞
+# Check known vulnerabilities
 ```
 
-### 2. 代码风险
+### 2. Code risks
+
 ```rust
-// 检查项
-// - unsafe 使用
-// - 加密算法选择
-// - 随机数生成
-// - 权限控制
+// Checkpoints
+// - unsafe usage
+// - cryptography choices
+// - random number generation
+// - permission control
 ```
 
-### 3. 隐私合规
+### 3. Privacy compliance
+
 ```rust
-// 检查项
-// - 日志敏感信息
-// - 数据存储安全
-// - 网络传输加密
+// Checkpoints
+// - logging sensitive data
+// - data storage security
+// - network transport encryption
 ```
 
-## 风险等级
+## Risk levels
 
-| 等级 | CVSS | 处理 |
-|-----|------|------|
-| 🔴 严重 | ≥9.0 | 立即修复 |
-| 🟠 高危 | 7.0-8.9 | 优先处理 |
-| 🟡 中危 | 4.0-6.9 | 计划修复 |
-| 🟢 低危 | <4.0 | 按需处理 |
+| Level    | CVSS    | Action          |
+|----------|---------|-----------------|
+| Critical | ≥9.0    | Fix immediately |
+| High     | 7.0-8.9 | Prioritize      |
+| Medium   | 4.0-6.9 | Plan fixes      |
+| Low      | <4.0    | Fix as needed   |
 
-## 关联技能
-- `rust-unsafe` - Unsafe 安全
-- `rust-ffi` - 跨语言安全
-- `rust-coding` - 代码规范
+## Related skills
 
+- `rust-unsafe` - Unsafe safety
+- `rust-ffi` - Cross-language safety
+- `rust-coding` - Coding standards

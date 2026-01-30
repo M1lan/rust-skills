@@ -1,21 +1,21 @@
 ---
 name: rust-middleware
-description: "请求追踪、CORS 配置、限流、中间件模式"
+description: "Request tracing, CORS configuration, rate limiting, middleware patterns"
 category: infrastructure
-triggers: ["middleware", "cors", "rate-limit", "tracing", "中间件", "请求追踪"]
+triggers: ["middleware", "cors", "rate-limit", "tracing", "middleware", "request tracing"]
 related_skills:
-  - rust-web
-  - rust-error
-  - rust-concurrency
+ - rust-web
+ - rust-error
+ - rust-concurrency
 ---
 
-# Rust Middleware - 中间件技能
+# Rust Middleware - Middleware Skills
 
-> 本技能提供 Web 中间件的系统化解决方案。
+> This skill provides a systematic solution for web middleware.
 
-## 核心模式
+## Core patterns
 
-### 1. 请求追踪中间件
+### 1. Request tracing middleware
 
 ```rust
 use actix_web::{
@@ -99,7 +99,7 @@ where
 }
 ```
 
-### 2. CORS 配置
+### 2. CORS configuration
 
 ```rust
 use actix_cors::Cors;
@@ -144,7 +144,7 @@ impl CorsBuilder {
 }
 ```
 
-### 3. 限流中间件
+### 3. Rate limiting middleware
 
 ```rust
 use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, Error, HttpResponse};
@@ -259,16 +259,16 @@ impl RateLimiting {
 
 ---
 
-## 常见问题
+## Common problems
 
-| 问题 | 原因 | 解决 |
+| Problem | Cause | Fix |
 |-----|------|-----|
-| CORS 失败 | Origin 配置 | 检查 `allowed_origin_fn` |
-| 限流误伤 | 内存计数 | 生产环境用 Redis |
+| CORS failures | Origin configuration | Check `allowed_origin_fn` |
+| Rate limiting false positives | In-memory counters | Use Redis in production |
 
 ---
 
-## 关联技能
+## Related skills
 
-- `rust-web` - Web 框架集成
-- `rust-auth` - 认证中间件
+- `rust-web` - Web framework integration
+- `rust-auth` - Authentication middleware

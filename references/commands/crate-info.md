@@ -1,58 +1,57 @@
 ---
 name: crate-info
-description: "查询 Crate 依赖信息"
+description: "Query crate information in the Rust ecosystem"
 category: dependency-info
-triggers: ["crate", "dependency", "library", "依赖", "库"]
+triggers: ["crate", "dependency", "library", "Dependency", "Library"]
 related_skills:
-  - rust-ecosystem
-  - rust-learner
+ - rust-ecosystem
+ - rust-learner
 ---
 
-# Crate Info 命令
+# Crate Info command
 
-## 功能说明
+## Functional description
 
-查询 Rust 生态系统中 Crate 的详细信息：
-- 版本和下载量
-- 使用统计
-- 维护状态
-- 替代方案
+Search for details of crates in the Rust ecosystem:
+- Versions and downloads
+- Use statistics
+- Maintenance status
+- Alternatives
 
-## 使用方法
+## Use method
 
 ```bash
-# 查询 Crate 信息
+# Query crate information
 ./scripts/crate-info.sh serde
 
-# 查看同类对比
+# View similar comparisons
 ./scripts/crate-info.sh --compare actix axum
 
-# 查找替代品
+# Find alternatives
 ./scripts/crate-info.sh --alternatives json
 ```
 
-## 常用 Crate 分类
+## Common crate categories
 
-### Web 框架
-| Crate | 周下载量 | 维护状态 | 特点 |
+### Web frameworks
+| Crate | Week Downloads | Maintenance status | Characteristics |
 |-------|---------|---------|------|
-| axum | 500K+ | 活跃 | 轻量、异步优先 |
-| actix-web | 300K+ | 活跃 | 高性能 |
-| rocket | 200K+ | 维护中 | 友好 API |
+| axum | 500K+ | Active | Modern, type-safe |
+| actix-web | 300K+ | Active | High performance |
+| rocket | 200K+ | Maintenance | Developer-friendly |
 
-### 序列化
-| Crate | 周下载量 | 特点 |
+### Serialization
+| Crate | Week Downloads | Characteristics |
 |-------|---------|------|
 | serde | 30M+ | JSON/YAML/TOML |
-| bincode | 2M+ | 高效二进制 |
+| bincode | 2M+ | Efficient binary |
 
-### 异步运行时
-| Crate | 周下载量 | 特点 |
+### Async runtimes
+| Crate | Week Downloads | Characteristics |
 |-------|---------|------|
-| tokio | 25M+ | 全功能 |
-| async-std | 1M+ |  std 风格 |
+| tokio | 25M+ | Full-featured |
+| async-std | 1M+ | std-like API |
 
-## 关联技能
-- `rust-ecosystem` - crate 选择
-- `rust-learner` - 生态学习
-
+## Related skills
+- Crate selection
+- Ecosystem learning

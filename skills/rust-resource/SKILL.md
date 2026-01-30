@@ -1,164 +1,163 @@
 ---
 name: rust-resource
-description: "智能指针与资源管理专家。处理 Box, Rc, Arc, Weak, RefCell, Cell, interior mutability, RAII, Drop, 堆分配, 引用计数, 智能指针"
+description: "Smart pointers and resource management: Box, Rc, Arc, Weak, RefCell, Cell, interior mutability, RAII, Drop, heap allocation, reference counting"
 globs: ["**/*.rs"]
 ---
 
-# 智能指针与资源管理
+# Smart pointer and resource management
 
-## 核心问题
+## Core issues
 
-**这个资源应该用什么方式管理？**
+**Key question:** How should this resource be managed?
 
-选择正确的智能指针是 Rust 编程的核心决策之一。
-
----
-
-## 选择决策树
-
-```
-需要共享数据吗？
-    │
-    ├─ 否 → 单 owner
-    │   ├─ 需要堆分配？ → Box<T>
-    │   └─ 栈上即可？ → 直接值类型
-    │
-    └─ 是 → 需要共享
-          │
-          ├─ 单线程？
-          │   ├─ 可变？ → Rc<RefCell<T>>
-          │   └─ 只读？ → Rc<T>
-          │
-          └─ 多线程？
-                ├─ 可变？ → Arc<Mutex<T>> 或 Arc<RwLock<T>>
-                └─ 只读？ → Arc<T>
-```
+Selecting the right smart pointer is one of the core decisions of Rust programming.
 
 ---
 
-## 智能指针对比
+## Selection decision tree
 
-| 类型 | 所有权 | 线程安全 | 适用场景 |
+```
+Need to share data?
+ │
+ ├─ No → Single owner
+ │ ├─ Need heap allocation? → Box<T>
+ │ └─ Stack is fine → plain value
+ │
+ └─ Yes → Shared ownership
+ │
+ ├─ Single-thread?
+ │ ├─ Mutable? → Rc<RefCell<T>>
+ │ └─ Read-only? → Rc<T>
+ │
+ └─ Multi-thread?
+     ├─ Mutable? → Arc<Mutex<T>> or Arc<RwLock<T>>
+     └─ Read-only? → Arc<T>
+```
+
+---
+
+## Smart pointer comparison
+
+| Type | Ownership | Thread-safe | Use case |
 |-----|-------|---------|---------|
-| `Box<T>` | 单 owner | Yes | 堆分配、递归类型、trait object |
-| `Rc<T>` | 共享 | No | 单线程共享、避免 clone |
-| `Arc<T>` | 共享 | Yes | 多线程共享、只读数据 |
-| `Weak<T>` | 弱引用 | - | 打破循环引用 |
-| `RefCell<T>` | 单 owner | No | 运行时借用检查 |
-| `Cell<T>` | 单 owner | No | Copy 类型的内部可变性 |
+| `Box<T>` | Single owner | Yes | Heap allocation, recursive types, trait objects |
+| `Rc<T>` | Shared | No | Single-thread sharing, avoid cloning |
+| `Arc<T>` | Shared | Yes | Multi-thread sharing, read-only data |
+| `Weak<T>` | Weak | - | Break cycles |
+| `RefCell<T>` | Single owner | No | Runtime borrow checking |
+| `Cell<T>` | Single owner | No | Copy-type interior mutability |
 
 ---
 
-## 常见错误与解决方案
+## Common errors and solutions
 
-### Rc 循环引用泄漏
+### Rc cycle leak
 
 ```rust
-// ❌ 内存泄漏：两个 Rc 互相引用
+// ❌ Memory leak: Rc cycle
 struct Node {
-    value: i32,
-    next: Option<Rc<Node>>,
+ value: i32,
+ next: Option<Rc<Node>>,
 }
 
-// ✅ 解决方案：使用 Weak 打破循环
+// ✅ Solution: use Weak to break cycles
 struct Node {
-    value: i32,
-    next: Option<Weak<Node>>,
+ value: i32,
+ next: Option<Weak<Node>>,
 }
 ```
 
 ### RefCell panic
 
 ```rust
-// ❌ 运行时 panic：双重可变借用
+// ❌ Runtime panic: double borrow
 let cell = RefCell::new(vec![1, 2, 3]);
 let mut_borrow = cell.borrow_mut();
 let another_borrow = cell.borrow(); // panic!
 
-// ✅ 解决方案：使用 try_borrow
+// ✅ Solution: use try_borrow
 if let Ok(mut_borrow) = cell.try_borrow_mut() {
-    // 安全使用
+ // Safe use
 }
 ```
 
-### Arc 开销投诉
+### Arc overhead complaints
 
 ```rust
-// ❌ 不必要的 Arc：单线程环境
+// ❌ Unnecessary Arc: single-threaded environment
 let shared = Arc::new(data);
 
-// ✅ 单线程用 Rc
+// ✅ Single-thread Rc
 let shared = Rc::new(data);
 
-// ❌ 多线程不必要的原子操作
-// 如果确定不需要跨线程共享，就不要用 Arc
+// ❌ Unnecessary atomic ops
+// If you don't need cross-thread sharing, don't use Arc
 ```
 
 ---
 
-## 内部可变性选择
+## Interior mutability selection
 
 ```rust
-// T 是 Copy 类型 → Cell
+// Copy type → Cell
 struct Counter {
-    count: Cell<u32>,
+ count: Cell<u32>,
 }
 
-// T 不是 Copy → RefCell
+// Non-Copy → RefCell
 struct Container {
-    items: RefCell<Vec<Item>>,
+ items: RefCell<Vec<Item>>,
 }
 
-// 多线程 → Mutex 或 RwLock
+// Multi-thread → Mutex or RwLock
 struct SharedContainer {
-    items: Mutex<Vec<Item>>,
+ items: Mutex<Vec<Item>>,
 }
 ```
 
 ---
 
-## RAII 与 Drop
+## RAII and Drop
 
 ```rust
 struct File {
-    handle: std::fs::File,
+ handle: std::fs::File,
 }
 
 impl Drop for File {
-    fn drop(&mut self) {
-        // 自动释放资源
-        println!("File closed");
-    }
+ fn drop(&mut self) {
+ // Automatically release resources
+ println!("File closed");
+ }
 }
 
-// 使用 guard pattern 确保清理
+// Use guard pattern to ensure cleanup
 struct Guard<'a> {
-    resource: &'a Resource,
+ resource: &'a Resource,
 }
 
 impl Drop for Guard<'_> {
-    fn drop(&mut self) {
-        self.resource.release();
-    }
+ fn drop(&mut self) {
+ self.resource.release();
+ }
 }
 ```
 
 ---
 
-## 性能提示
+## Performance hints
 
-| 场景 | 建议 |
+| Scenario | Recommendation |
 |-----|------|
-| 大量小对象 | `Rc::make_mut()` 避免 clone |
-| 频繁读取 | `RwLock` 比 `Mutex` 更好 |
-| 计数器 | 用 `AtomicU64` 而非 `Mutex<u64>` |
-| 缓存 | 考虑 `moka` 或 `cached` crate |
+| Lots of small objects | Use `Rc::make_mut()` to avoid clones |
+| Read-heavy | `RwLock` over `Mutex` |
+| Counters | Use `AtomicU64` instead of `Mutex<u64>` |
+| Cache | Consider `moka` or `cached` |
 
 ---
 
-## 何时不用智能指针
+## When you don't need a smart pointer
 
-- 栈上数据足够 → 用值类型
-- 借用即可满足 → 用引用 `&T`
-- 生命周期简单 → 不要过度抽象
-
+- Stack allocation is enough → use plain values
+- Borrowing is sufficient → use `&T`
+- Lifetimes are simple → avoid over-abstraction

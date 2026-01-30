@@ -1,70 +1,74 @@
 ---
 name: unsafe-check
-description: "Unsafe 代码安全检查"
+description: "Unsafe code security checks"
 category: code-safety
-triggers: ["unsafe", "safety", "FFI", "安全检查", "内存安全"]
+triggers: ["unsafe", "safety", "FFI"]
 related_skills:
-  - rust-unsafe
-  - rust-ffi
-  - rust-ownership
+ - rust-unsafe
+ - rust-ffi
+ - rust-ownership
 ---
 
-# Unsafe Check 命令
+# Unsafe Check Command
 
-## 功能说明
+## Functional description
 
-检查 Rust 代码中的 unsafe 操作，确保：
-- raw pointer 使用安全
-- FFI 调用规范
-- 内存布局正确
-- 未定义行为防范
+Check unsafe operations in Rust code to ensure:
 
-## 使用方法
+- Raw pointer usage is safe
+- FFI calls are correct
+- Memory layout is correct
+- Undefined behavior is prevented
+
+## Usage
 
 ```bash
-# 安全检查
+# Security checks
 ./scripts/unsafe-check.sh
 
-# 生成报告
+# Generate report
 ./scripts/unsafe-check.sh --report
 ```
 
-## 检查项目
+## Check items
 
-### 1. Raw Pointer 操作
+### 1. Raw pointer operations
+
 ```rust
-// 检查项
-// - 是否在 unsafe 块内操作
-// - 指针是否为空
-// - 生命周期是否正确
+// Checkpoints
+// - Is the operation inside an unsafe block?
+// - Is the pointer null?
+// - Are lifetimes correct?
 ```
 
-### 2. FFI 调用
+### 2. FFI calls
+
 ```rust
-// 检查项
-// - extern 函数声明正确性
-// - 跨平台兼容性
-// - 错误处理完整性
+// Checkpoints
+// - extern function declarations are correct
+// - Cross-platform compatibility
+// - Error handling is complete
 ```
 
-### 3. 内存安全
+### 3. Memory safety
+
 ```rust
-// 检查项
-// - Send/Sync 实现
-// - 借用规则遵守
-// - 生命周期标注
+// Checkpoints
+// - Send/Sync implemented correctly
+// - Borrow rules respected
+// - Lifetimes annotated
 ```
 
-## 安全等级
+## Severity levels
 
-| 等级 | 风险 | 要求 |
-|-----|------|------|
-| 🔴 高危 | 可能导致 UB | 必须添加 SAFETY 注释 |
-| 🟠 中危 | 潜在风险 | 建议审查 |
-| 🟡 低危 | 警告信息 | 按需处理 |
+| Level  | Risk           | Requirement              |
+|--------|----------------|--------------------------|
+| High   | May cause UB   | Must add SAFETY comments |
+| Medium | Potential risk | Review recommended       |
+| Low    | Warning        | Fix as needed            |
 
-## 关联技能
-- `rust-unsafe` - Unsafe 代码规范
-- `rust-ffi` - 跨语言调用
-- `rust-ownership` - 所有权与借用
+## Related skills
 
+- `rust-unsafe` - Unsafe coding rules
+- `rust-ffi` - Cross-language interop
+- `rust-ownership` - Ownership and borrowing

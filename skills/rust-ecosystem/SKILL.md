@@ -1,188 +1,187 @@
 ---
 name: rust-ecosystem
-description: "Rust 生态专家。处理 crate 选择、库推荐、框架对比、async runtime 选择、序列化库、web 框架等。触发词：crate, library, framework, ecosystem, async runtime, tokio, async-std, serde, reqwest, axum, 库, 框架, 生态"
+description: "Rust ecosystem guide: crate selection, library recommendations, frameworks, async runtimes, and tooling. Triggers: crate, library, framework, ecosystem, async runtime, tokio, async-std, serde, reqwest, axum"
 globs: ["**/Cargo.toml"]
 ---
 
-# Rust 生态
+# Rust Ecosystem
 
-## 核心问题
+## Core issues
 
-**用什么 crate 解决当前问题？**
+**Key question:** Which crate solves this problem best?
 
-选择正确的库是高效 Rust 开发的关键。
+Selecting the right library is the key to efficient Rust development.
 
 ---
 
-## 异步 Runtime
+## Async runtimes
 
-| Runtime | 特点 | 适用场景 |
+| Runtime | Characteristics | Use case |
 |---------|------|---------|
-| **tokio** | 最流行、功能全 | 通用异步应用 |
-| **async-std** | 类似 std API | 偏好 std 风格 |
-| **actix** | 高性能 | 高性能 Web 服务 |
-| **async-executors** | 统一接口 | 需要切换 runtime |
+| **tokio** | Most popular, full-featured | General-purpose async |
+| **async-std** | Std-like API | Prefer std-style APIs |
+| **actix** | High performance | Actix ecosystem |
+| **async-executors** | Unified interface | Runtime abstraction |
 
 ```toml
-# Web 服务
+# Web services
 tokio = { version = "1", features = ["full"] }
 axum = "0.7"
 
-# 轻量级
+# Lightweight runtime
 async-std = "1"
 ```
 
 ---
 
-## Web 框架
+## Web frameworks
 
-| 框架 | 特点 | 性能 |
+| Framework | Characteristics | Performance |
 |-----|------|------|
-| **axum** | Tower 中间件、类型安全 | 高 |
-| **actix-web** | 最高性能 | 最高 |
-| **rocket** | 开发者友好 | 中 |
-| **warp** | 组合式、Filter | 高 |
+| **axum** | Tower middleware, type-safe | High |
+| **actix-web** | Max performance | Highest |
+| **rocket** | Developer friendly | Medium |
+| **warp** | Filter-based | High |
 
 ---
 
-## 序列化
+## Serialization
 
-| 库 | 特点 | 性能 |
+| Library | Characteristics | Performance |
 |-----|------|------|
-| **serde** | 标准选择 | 高 |
-| **bincode** | 二进制、紧凑 | 最高 |
-| ** postcard** | 无 std、嵌入式 | 高 |
-| **ron** | 可读性好 | 中 |
+| **serde** | Standard selection | High |
+| **bincode** | Binary, compact | Highest |
+| **postcard** | no_std, embedded | High |
+| **ron** | Human-readable | Medium |
 
 ```rust
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 struct User {
-    id: u64,
-    name: String,
+ id: u64,
+ name: String,
 }
 
 // JSON
 let json = serde_json::to_string(&user)?;
 
-// 二进制
+// Binary
 let bytes = bincode::serialize(&user)?;
 ```
 
 ---
 
-## HTTP 客户端
+## HTTP Client
 
-| 库 | 特点 |
+| Library | Characteristics |
 |-----|------|
-| **reqwest** | 最流行、易用 |
-| **ureq** | 同步、简单 |
-| **surf** | 异步、modern |
+| **reqwest** | Most popular, easy to use |
+| **ureq** | Sync, simple |
+| **surf** | Async, modern |
 
 ```rust
 // reqwest
 let response = reqwest::Client::new()
-    .post("https://api.example.com")
-    .json(&payload)
-    .send()
-    .await?;
+ .post("https://api.example.com")
+ .json(&payload)
+ .send()
+ .await?;
 ```
 
 ---
 
-## 数据库
+## Database
 
-| 类型 | 库 |
+| Type | Library |
 |-----|------|
 | ORM | **sqlx**, diesel, sea-orm |
 | Raw SQL | **sqlx**, tokio-postgres |
 | NoSQL | mongodb, redis |
-| 连接池 | **sqlx**, deadpool, r2d2 |
+| Connect pool | **sqlx**, deadpool, r2d2 |
 
 ---
 
-## 并发与并行
+## Concurrency and parallelism
 
-| 场景 | 推荐 |
+| Scenario | Recommendation |
 |-----|------|
-| 数据并行 | **rayon** |
-| 工作窃取 | **crossbeam**, tokio |
-| 通道 | **tokio::sync**, crossbeam, flume |
-| 原子类型 | **std::sync::atomic** |
+| Data Parallel | **rayon** |
+| Work stealing | **crossbeam**, tokio |
+| Channels | **tokio::sync**, crossbeam, flume |
+| Atomics | **std::sync::atomic** |
 
 ---
 
-## 错误处理
+## Error handling
 
-| 库 | 用途 |
+| Library | Use |
 |-----|------|
-| **thiserror** | 库错误类型 |
-| **anyhow** | 应用错误传播 |
-| **snafu** | 结构化错误 |
+| **thiserror** | Library error types |
+| **anyhow** | Application errors |
+| **snafu** | Structured errors |
 
 ---
 
-## 常用工具库
+## Common tooling
 
-| 场景 | 库 |
+| Scenario | Library |
 |-----|------|
-| 命令行 | **clap** (v4), structopt |
-| 日志 | **tracing**, log |
-| 配置 | **config**, dotenvy |
-| 测试 | **tempfile**, rstest |
-| 时间 | **chrono**, time |
+| Command line | **clap** (v4), structopt |
+| Logging | **tracing**, log |
+| Configuration | **config**, dotenvy |
+| Testing | **tempfile**, rstest |
+| Time | **chrono**, time |
 
 ---
 
-## Crate 选择原则
+## Crate selection principles
 
-1. **活跃维护**：看 GitHub 活跃度、最近更新
-2. **下载量**：crates.io 下载量参考
-3. **MSRV**：最小支持 Rust 版本
-4. **依赖**：依赖数量和安全性
-5. **文档**：完整文档和示例
-6. **License**：MIT/Apache2 兼容性
+1. **Maintenance:** GitHub activity and last update
+2. **Downloads:** crates.io stats
+3. **MSRV:** minimum supported Rust version
+4. **Dependencies:** quantity and safety
+5. **Docs:** completeness and examples
+6. **License:** MIT/Apache compatibility
 
 ---
 
-## 废弃模式 → 推荐
+## Prefer modern alternatives
 
-| 废弃 | 推荐 | 原因 |
+| Abandon | Recommendations | Reason |
 |-----|------|------|
-| `lazy_static` | `std::sync::OnceLock` | std 内置 |
-| `rand::thread_rng` | `rand::rng()` | 新 API |
-| `failure` | `thiserror` + `anyhow` | 更流行 |
-| `serde_derive` | `serde` | 统一导入 |
-| `parking_lot::Mutex` | std::sync::Mutex | 足够快，稳定性优先 |
+| `lazy_static` | `std::sync::OnceLock` | std internal |
+| `rand::thread_rng` | `rand::rng()` | New API |
+| `failure` | `thiserror` + `anyhow` | More popular |
+| `serde_derive` | `serde` | Unified import |
+| `parking_lot::Mutex` | std::sync::Mutex | Good enough, fewer deps |
 
 ---
 
-## 验证 Crate
+## Authentication
 
 ```bash
-# 检查安全性
+# Check security
 cargo audit
 
-# 检查许可证
+# Check licenses
 cargo deny check
 
-# 检查依赖
+# Inspect dependency tree
 cargo tree -i serde
 ```
 
 ---
 
-## 快速参考
+## Quick Reference
 
-| 场景 | 推荐 Crate |
+| Scenario | Recommended |
 |-----|-----------|
-| Web 服务 | axum + tokio + sqlx |
-| CLI 工具 | clap + anyhow |
-| 序列化 | serde + (json/bincode) |
-| 并行计算 | rayon |
-| 配置管理 | config + dotenvy |
-| 日志追踪 | tracing |
-| 测试 | tempfile + proptest |
-| 日期时间 | chrono |
-
+| Web Services | axum + tokio + sqlx |
+| CLI Tools | clap + anyhow |
+| Serialization | serde + (json/bincode) |
+| Parallel calculations | rayon |
+| Configuration Management | config + dotenvy |
+| Logging | tracing |
+| Tests | tempfile + proptest |
+| Date/time | chrono |

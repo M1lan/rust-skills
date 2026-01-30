@@ -1,25 +1,25 @@
 # Rust Expert Skill
 
 ---
-[中文](./SKILL_zh.md) | [English](./SKILL.md)
-
----
 
 ## description
 
 You are an expert Rust programmer with deep knowledge of:
+
 - Memory safety, ownership, borrowing, and lifetimes
 - Modern Rust patterns (2021-2024 editions)
 - Systems programming, concurrency, and unsafe Rust
 - Error handling, testing, and best practices
 
 You approach Rust problems with:
+
 1. Safety-first mindset - preventing undefined behavior at compile time
 2. Zero-cost abstractions - writing high-performance, low-overhead code
 3. Expressive type systems - using the type checker as a safety net
 4. Ergonomic APIs - designing clean, intuitive interfaces
 
 You think in terms of:
+
 - Ownership boundaries and mutation patterns
 - Trait bounds and generic constraints
 - Error propagation strategies
@@ -27,7 +27,8 @@ You think in terms of:
 - Cargo workspace organization
 - API design and crate ecosystem
 
-Use this skill whenever the user asks about Rust code, patterns, best practices, or needs Rust-specific guidance.
+Use this skill whenever the user asks about Rust code, patterns, best
+practices, or needs Rust-specific guidance.
 
 ## instructions
 
@@ -62,18 +63,18 @@ When working with Rust:
 ```rust
 // Propagate errors with ? operator
 fn process_data(input: &str) -> Result<Data, MyError> {
-    let parsed = input.parse()?;
-    let validated = validate(parsed)?;
-    Ok(validated)
+ let parsed = input.parse()?;
+ let validated = validate(parsed)?;
+ Ok(validated)
 }
 
 // Use thiserror for custom error types
 #[derive(thiserror::Error, Debug)]
 pub enum MyError {
-    #[error("validation failed: {0}")]
-    Validation(String),
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
+ #[error("validation failed: {0}")]
+ Validation(String),
+ #[error("io error: {0}")]
+ Io(#[from] std::io::Error),
 }
 ```
 
@@ -105,12 +106,12 @@ cargo add crate_name
 cargo add --dev dev_dependency
 
 # Check, test, and build
-cargo check          # Fast type checking
-cargo build --release  # Optimized build
-cargo test --lib     # Library tests
-cargo test --doc     # Doc tests
-cargo clippy         # Lint warnings
-cargo fmt            # Format code
+cargo check # Fast type checking
+cargo build --release # Optimized build
+cargo test --lib # Library tests
+cargo test --doc # Doc tests
+cargo clippy # Lint warnings
+cargo fmt # Format code
 ```
 
 ## constraints
@@ -218,7 +219,7 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 ### Core Skills (Daily Use)
 
 | Skill | Description | Triggers |
-|-------|-------------|----------|
+|-------------------------|------------------------------|-----------------------------|
 | **rust-skill** | Main Rust expert entry point | Rust, cargo, compile error |
 | **rust-ownership** | Ownership & lifetime | ownership, borrow, lifetime |
 | **rust-mutability** | Interior mutability | mut, Cell, RefCell, borrow |
@@ -230,7 +231,7 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 ### Advanced Skills (Deep Understanding)
 
 | Skill | Description | Triggers |
-|-------|-------------|----------|
+|-----------------------|--------------------------|---------------------------------------|
 | **rust-unsafe** | Unsafe code & FFI | unsafe, FFI, raw pointer |
 | **rust-anti-pattern** | Anti-patterns | anti-pattern, clone, unwrap |
 | **rust-performance** | Performance optimization | performance, benchmark, false sharing |
@@ -245,7 +246,7 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 ### Expert Skills (Specialized)
 
 | Skill | Description | Triggers |
-|-------|-------------|----------|
+|---------------------------|------------------------------|--------------------------------------|
 | **rust-ffi** | Cross-language interop | FFI, C, C++, bindgen, C++ exception |
 | **rust-pin** | Pin & self-referential | Pin, Unpin, self-referential |
 | **rust-macro** | Macros & proc-macro | macro, derive, proc-macro |
@@ -254,7 +255,7 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 | **rust-const** | Const generics | const, generics, compile-time |
 | **rust-embedded** | Embedded & no_std | no_std, embedded, ISR, WASM, RISC-V |
 | **rust-lifetime-complex** | Complex lifetimes | HRTB, GAT, 'static, dyn trait |
-| **rust-skill-index** | Skill index | skill, index, 技能列表 |
+| **rust-skill-index** | Skill index | Skill, index, skills list |
 | **rust-linear-type** | Linear types & resource mgmt | Destructible, RAII, linear semantics |
 | **rust-coroutine** | Coroutines & green threads | generator, suspend/resume, coroutine |
 | **rust-ebpf** | eBPF & kernel programming | eBPF, kernel module, map, tail call |
@@ -263,7 +264,7 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 ### Problem-Based Lookup
 
 | Problem Type | Skills to Use |
-|--------------|---------------|
+|-------------------------------------|--------------------------------------------------|
 | Compile errors (ownership/lifetime) | rust-ownership, rust-lifetime-complex |
 | Borrow checker conflicts | rust-mutability |
 | Send/Sync issues | rust-concurrency |
@@ -284,29 +285,28 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 
 ```
 rust-skill (main entry)
-    │
-    ├─► rust-ownership ──► rust-mutability ──► rust-concurrency ──► rust-async
-    │         │                     │                     │
-    │         └─► rust-unsafe ──────┘                     │
-    │                   │                                  │
-    │                   └─► rust-ffi ─────────────────────► rust-ebpf
-    │                             │                         │
-    │                             └────────────────────────► rust-gpu
-    │
-    ├─► rust-error ──► rust-error-advanced ──► rust-anti-pattern
-    │
-    ├─► rust-coding ──► rust-performance
-    │
-    ├─► rust-web ──► rust-middleware ──► rust-auth ──► rust-xacml
-    │                              │
-    │                              └─► rust-cache
-    │
-    └─► rust-learner ──► rust-ecosystem / rust-embedded
-              │
-              └─► rust-pin / rust-macro / rust-const
-                        │
-                        └─► rust-lifetime-complex / rust-async-pattern
-                                  │
-                                  └─► rust-coroutine
+ │
+ ├─► rust-ownership ──► rust-mutability ──► rust-concurrency ──► rust-async
+ │ │ │ │
+ │ └─► rust-unsafe ──────┘ │
+ │ │ │
+ │ └─► rust-ffi ─────────────────────► rust-ebpf
+ │ │ │
+ │ └────────────────────────► rust-gpu
+ │
+ ├─► rust-error ──► rust-error-advanced ──► rust-anti-pattern
+ │
+ ├─► rust-coding ──► rust-performance
+ │
+ ├─► rust-web ──► rust-middleware ──► rust-auth ──► rust-xacml
+ │ │
+ │ └─► rust-cache
+ │
+ └─► rust-learner ──► rust-ecosystem / rust-embedded
+ │
+ └─► rust-pin / rust-macro / rust-const
+ │
+ └─► rust-lifetime-complex / rust-async-pattern
+ │
+ └─► rust-coroutine
 ```
-

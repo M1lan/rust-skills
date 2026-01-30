@@ -1,235 +1,236 @@
-# Rust 并发模式
+# Concurrency
 
-Rust 的类型系统在编译时强制实施内存安全和无数据竞争。
+Rust's type system enforces memory safety and prevents data races at compile
+time.
 
-## Send 和 Sync
+## Send and Sync
 
-### Send - 可以在线程间转移
-
-```rust
-// 实现 Send 的类型：
-// - 所有拥有类型（String、Vec 等）
-// - 只有 Send 字段的类型
-// - 引用（&T，其中 T: Sync）
-
-// ❌ 不是 Send：Rc<T>（引用计数非原子）
-```
-
-### Sync - 可以在线程间共享
+### Send - transferable across threads
 
 ```rust
-// 实现 Sync 的类型：
-// - &T，其中 T: Send
-// - Mutex<T>，其中 T: Send + Sync
-// - 原子类型
+// Send types:
+// - Most owned types (String, Vec, etc.)
+// - Types whose fields are all Send
+// - References &T where T: Sync
 
-// ❌ 不是 Sync：RefCell<T>（借用检查在运行时，非线程安全）
+// ❌ Not Send: Rc<T> (non-atomic ref count)
 ```
 
-## 基本线程
+### Sync - shareable across threads
 
-### 创建线程
+```rust
+// Sync types:
+// - &T where T: Sync
+// - Mutex<T> where T: Send + Sync
+// - Atomic types
+
+// ❌ Not Sync: RefCell<T> (runtime borrow checking is not thread-safe)
+```
+
+## Basic Threads
+
+### Create Thread
 
 ```rust
 use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let handle = thread::spawn(|| {
-        for i in 1..=5 {
-            println!("线程: {}", i);
-            thread::sleep(Duration::from_millis(100));
-        }
-    });
-    
-    for i in 1..=5 {
-        println!("主线程: {}", i);
-        thread::sleep(Duration::from_millis(100));
-    }
-    
-    handle.join().unwrap();  // 等待线程完成
+ let handle = thread::spawn(|| {
+ for i in 1..=5 {
+ println!("Thread: {}", i);
+ thread::sleep(Duration::from_millis(100));
+ }
+ });
+
+ for i in 1..=5 {
+ println!("Main: {}", i);
+ thread::sleep(Duration::from_millis(100));
+ }
+
+ handle.join().unwrap(); // Waiting for thread to complete
 }
 ```
 
-### 将值移动到线程
+### Move value to thread
 
 ```rust
 fn main() {
-    let v = vec![1, 2, 3];
-    
-    let handle = thread::spawn(move || {
-        println!("向量: {:?}", v);
-    });
-    
-    handle.join().unwrap();
-    // v 已被移动，此处无法使用
+ let v = vec![1, 2, 3];
+
+ let handle = thread::spawn(move || {
+ println!("Vector: {:?}", v);
+ });
+
+ handle.join().unwrap();
+ // v Moved,Cannot use here
 }
 ```
 
-## 共享状态
+## Shared Status
 
-### Mutex - 互斥锁
+### Mutex - Cross-Lock
 
 ```rust
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
-    let counter = Arc::new(Mutex::new(0));
-    let mut handles = vec![];
-    
-    for _ in 0..10 {
-        let counter = Arc::clone(&counter);
-        let handle = thread::spawn(move || {
-            let mut num = counter.lock().unwrap();
-            *num += 1;
-        });
-        handles.push(handle);
-    }
-    
-    for handle in handles {
-        handle.join().unwrap();
-    }
-    
-    println!("结果: {}", *counter.lock().unwrap());
+ let counter = Arc::new(Mutex::new(0));
+ let mut handles = vec![];
+
+ for _ in 0..10 {
+ let counter = Arc::clone(&counter);
+ let handle = thread::spawn(move || {
+ let mut num = counter.lock().unwrap();
+ *num += 1;
+ });
+ handles.push(handle);
+ }
+
+ for handle in handles {
+ handle.join().unwrap();
+ }
+
+ println!("Result: {}", *counter.lock().unwrap());
 }
 ```
 
-### RwLock - 多读单写
+### RwLock - Multireading Book
 
 ```rust
 use std::sync::{Arc, RwLock};
 use std::thread;
 
 fn main() {
-    let data = Arc::new(RwLock::new(0));
-    let mut handles = vec![];
-    
-    // 多个读者
-    for _ in 0..5 {
-        let data = Arc::clone(&data);
-        let handle = thread::spawn(move || {
-            let value = data.read().unwrap();
-            println!("读取: {}", value);
-        });
-        handles.push(handle);
-    }
-    
-    // 单个写者
-    {
-        let mut value = data.write().unwrap();
-        *value += 100;
-        println!("写入: {}", value);
-    }
-    
-    for handle in handles {
-        handle.join().unwrap();
-    }
+ let data = Arc::new(RwLock::new(0));
+ let mut handles = vec![];
+
+ // Multiple Readers
+ for _ in 0..5 {
+ let data = Arc::clone(&data);
+ let handle = thread::spawn(move || {
+ let value = data.read().unwrap();
+ println!("Read: {}", value);
+ });
+ handles.push(handle);
+ }
+
+ // Single author
+ {
+ let mut value = data.write().unwrap();
+ *value += 100;
+ println!("Writing: {}", value);
+ }
+
+ for handle in handles {
+ handle.join().unwrap();
+ }
 }
 ```
 
-## 消息传递
+## Message transmission
 
-### 通道（Channel）
+### Channels
 
 ```rust
 use std::sync::mpsc;
 use std::thread;
 
 fn main() {
-    let (tx, rx) = mpsc::channel();
-    
-    let tx1 = tx.clone();
-    let handle1 = thread::spawn(move || {
-        tx1.send("来自线程 1 的问候").unwrap();
-    });
-    
-    let handle2 = thread::spawn(move || {
-        tx.send("来自线程 2 的问候").unwrap();
-    });
-    
-    for _ in 0..2 {
-        println!("收到: {}", rx.recv().unwrap());
-    }
-    
-    handle1.join().unwrap();
-    handle2.join().unwrap();
+ let (tx, rx) = mpsc::channel();
+
+ let tx1 = tx.clone();
+ let handle1 = thread::spawn(move || {
+ tx1.send("From Thread 1 Greetings.").unwrap();
+ });
+
+ let handle2 = thread::spawn(move || {
+ tx.send("From Thread 2 Greetings.").unwrap();
+ });
+
+ for _ in 0..2 {
+ println!("Copy that.: {}", rx.recv().unwrap());
+ }
+
+ handle1.join().unwrap();
+ handle2.join().unwrap();
 }
 ```
 
-### 发送多个值
+### Send multiple values
 
 ```rust
 use std::sync::mpsc;
 use std::thread;
 
 fn main() {
-    let (tx, rx) = mpsc::channel();
-    
-    thread::spawn(move || {
-        for i in 1..=5 {
-            tx.send(i).unwrap();
-            thread::sleep(std::time::Duration::from_millis(100));
-        }
-        drop(tx);  // 信号流结束
-    });
-    
-    for received in rx {
-        println!("收到: {}", received);
-    }
-    
-    println!("通道已关闭");
+ let (tx, rx) = mpsc::channel();
+
+ thread::spawn(move || {
+ for i in 1..=5 {
+ tx.send(i).unwrap();
+ thread::sleep(std::time::Duration::from_millis(100));
+ }
+ drop(tx); // The signal's over.
+ });
+
+ for received in rx {
+ println!("Copy that.: {}", received);
+ }
+
+ println!("Channel closed.");
 }
 ```
 
-## 原子类型
+## Atomic Type
 
-### 基础原子类型
+### Basic atomic type
 
 ```rust
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 
 fn main() {
-    let counter = AtomicUsize::new(0);
-    let mut handles = vec![];
-    
-    for _ in 0..10 {
-        let counter = &counter;
-        let handle = thread::spawn(move || {
-            counter.fetch_add(1, Ordering::SeqCst);
-        });
-        handles.push(handle);
-    }
-    
-    for handle in handles {
-        handle.join().unwrap();
-    }
-    
-    println!("计数器: {}", counter.load(Ordering::SeqCst));
+ let counter = AtomicUsize::new(0);
+ let mut handles = vec![];
+
+ for _ in 0..10 {
+ let counter = &counter;
+ let handle = thread::spawn(move || {
+ counter.fetch_add(1, Ordering::SeqCst);
+ });
+ handles.push(handle);
+ }
+
+ for handle in handles {
+ handle.join().unwrap();
+ }
+
+ println!("Counter: {}", counter.load(Ordering::SeqCst));
 }
 ```
 
-### 原子顺序
+### Atom Order
 
 ```rust
 use std::sync::atomic::{AtomicBool, Ordering};
 
-// Relaxed - 无顺序保证，但原子操作
-// Acquire - 与 Release 同步
-// Release - 与 Acquire 同步
-// SeqCst - 顺序一致性（最强，默认）
+// Relaxed - Unordered,But atom operations
+// Acquire - and Release Sync
+// Release - and Acquire Sync
+// SeqCst - Order consistency(Strongest,Default)
 
 fn example(ordering: Ordering) {
-    let flag = AtomicBool::new(false);
-    
-    // 大多数情况使用 SeqCst 保证正确性
-    flag.store(true, Ordering::SeqCst);
-    flag.load(Ordering::SeqCst);
+ let flag = AtomicBool::new(false);
+
+ // Mostly. SeqCst To be correct.
+ flag.store(true, Ordering::SeqCst);
+ flag.load(Ordering::SeqCst);
 }
 ```
 
-## 作用域线程
+## Scope
 
 ### std::thread::scope
 
@@ -237,24 +238,24 @@ fn example(ordering: Ordering) {
 use std::thread;
 
 fn main() {
-    let mut numbers = vec![1, 2, 3];
-    
-    thread::scope(|s| {
-        s.spawn(|| {
-            println!("长度: {}", numbers.len());
-        });
-        
-        s.spawn(|| {
-            numbers.push(4);  // 允许可变访问！
-        });
-    });
-    
-    // numbers 在此处仍然有效 - 线程是有作用域的
-    println!("数字: {:?}", numbers);
+ let mut numbers = vec![1, 2, 3];
+
+ thread::scope(|s| {
+ s.spawn(|| {
+ println!("Length: {}", numbers.len());
+ });
+
+ s.spawn(|| {
+ numbers.push(4); // Allow Variable Access!
+ });
+ });
+
+ // numbers It's still here. - There's a line.
+ println!("Numbers: {:?}", numbers);
 }
 ```
 
-## 异步并发
+## We're moving together
 
 ### Tokio
 
@@ -264,46 +265,46 @@ use tokio::time::{sleep, Duration};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let handle = task::spawn(async {
-        for i in 1..=5 {
-            println!("异步任务: {}", i);
-            sleep(Duration::from_millis(100)).await;
-        }
-        "完成！"
-    });
-    
-    println!("等待任务完成...");
-    let result = handle.await?;
-    println!("结果: {}", result);
-    
-    Ok(())
+ let handle = task::spawn(async {
+ for i in 1..=5 {
+ println!("Different task: {}", i);
+ sleep(Duration::from_millis(100)).await;
+ }
+ "Completed!"
+ });
+
+ println!("Waiting for task to be completed...");
+ let result = handle.await?;
+ println!("Result: {}", result);
+
+ Ok(())
 }
 ```
 
-### 异步通道
+### Async channels
 
 ```rust
 use tokio::sync::mpsc;
 
 #[tokio::main]
 async fn main() {
-    let (tx, mut rx) = mpsc::channel(32);
-    
-    tokio::spawn(async move {
-        for i in 1..=5 {
-            if tx.send(i).await.is_err() {
-                break;
-            }
-        }
-    });
-    
-    while let Some(value) = rx.recv().await {
-        println!("收到: {}", value);
-    }
+ let (tx, mut rx) = mpsc::channel(32);
+
+ tokio::spawn(async move {
+ for i in 1..=5 {
+ if tx.send(i).await.is_err() {
+ break;
+ }
+ }
+ });
+
+ while let Some(value) = rx.recv().await {
+ println!("Received: {}", value);
+ }
 }
 ```
 
-### 异步 Mutex
+### Async Mutex
 
 ```rust
 use tokio::sync::Mutex;
@@ -311,136 +312,136 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let counter = Arc::new(Mutex::new(0));
-    let mut tasks = vec![];
-    
-    for _ in 0..5 {
-        let counter = Arc::clone(&counter);
-        let task = tokio::spawn(async move {
-            let mut guard = counter.lock().await;
-            *guard += 1;
-            println!("计数器: {}", *guard);
-        });
-        tasks.push(task);
-    }
-    
-    for task in tasks {
-        task.await.unwrap();
-    }
-    
-    println!("最终值: {}", *counter.lock().await);
+ let counter = Arc::new(Mutex::new(0));
+ let mut tasks = vec![];
+
+ for _ in 0..5 {
+ let counter = Arc::clone(&counter);
+ let task = tokio::spawn(async move {
+ let mut guard = counter.lock().await;
+ *guard += 1;
+ println!("Counter: {}", *guard);
+ });
+ tasks.push(task);
+ }
+
+ for task in tasks {
+ task.await.unwrap();
+ }
+
+ println!("Final value [v]: {}", *counter.lock().await);
 }
 ```
 
-## 并行迭代器
+## Parallel iteration
 
 ```rust
 use rayon::prelude::*;
 
 fn main() {
-    let numbers: Vec<i32> = (1..=1000).collect();
-    
-    let sum: i32 = numbers
-        .par_iter()
-        .map(|&x| x * x)
-        .sum();
-    
-    println!("平方和: {}", sum);
+ let numbers: Vec<i32> = (1..=1000).collect();
+
+ let sum: i32 = numbers
+ .par_iter()
+ .map(|&x| x * x)
+ .sum();
+
+ println!("Square: {}", sum);
 }
 ```
 
-## 同步原语
+## Synchronization primitives
 
-### OnceLock 和 OnceCell
+### OnceLock and OnceCell
 
 ```rust
 use std::sync::OnceLock;
 
 fn get_global_config() -> &'static Config {
-    static CONFIG: OnceLock<Config> = OnceLock::new();
-    
-    CONFIG.get_or_init(|| {
-        Config::load()
-    })
+ static CONFIG: OnceLock<Config> = OnceLock::new();
+
+ CONFIG.get_or_init(|| {
+ Config::load()
+ })
 }
 ```
 
-### Barrier（屏障）
+### Barrier
 
 ```rust
 use std::sync::{Arc, Barrier};
 use std::thread;
 
 fn main() {
-    let barrier = Arc::new(Barrier::new(10));
-    let mut handles = vec![];
-    
-    for _ in 0..10 {
-        let barrier = barrier.clone();
-        let handle = thread::spawn(move || {
-            println!("屏障前");
-            barrier.wait();
-            println!("屏障后");
-        });
-        handles.push(handle);
-    }
-    
-    for handle in handles {
-        handle.join().unwrap();
-    }
+ let barrier = Arc::new(Barrier::new(10));
+ let mut handles = vec![];
+
+ for _ in 0..10 {
+ let barrier = barrier.clone();
+ let handle = thread::spawn(move || {
+ println!("Before the barrier");
+ barrier.wait();
+ println!("After the barrier");
+ });
+ handles.push(handle);
+ }
+
+ for handle in handles {
+ handle.join().unwrap();
+ }
 }
 ```
 
-## 最佳实践
+## Best practices
 
-### 应该做
+### Do
 
 ```rust
-// ✅ 使用 Arc 实现共享所有权
+// ✅ Use Arc to share ownership
 let shared = Arc::new(Data::new());
 
-// ✅ 锁的范围尽可能小
+// ✅ Keep lock scopes small
 {
-    let data = mutex.lock().unwrap();
-    process(&data);  // 处理时不要持有锁
+ let data = mutex.lock().unwrap();
+ process(&data); // Do not hold a lock while processing
 }
 
-// ✅ 使用通道实现松耦合
+// ✅ Use channels for loose coupling
 let (tx, rx) = mpsc::channel();
 
-// ✅ 短期工作使用作用域线程
+// ✅ Use scoped threads for short-lived work
 thread::scope(|s| {
-    s.spawn(|| { /* ... */ });
+ s.spawn(|| { /* ... */ });
 });
 ```
 
-### 不应该做
+### Don't
 
 ```rust
-// ❌ 不要在异步代码中跨 await 点持有锁
+// ❌ Don't hold a lock across an await point
 let mut guard = mutex.lock().unwrap();
-some_async_operation().await;  // 可能死锁！
-drop(guard);  // 先释放
+some_async_operation().await; // Could deadlock!
+drop(guard); // Release first
 
-// ❌ 不要在多线程代码中使用 Rc
+// ❌ Don't use Rc in multi-threaded code
 let rc = std::rc::Rc::new(42);
-// thread::spawn(move || println!("{}", rc));  // 错误！
+// thread::spawn(move || println!("{}", rc)); // Error!
 
-// ❌ 不要忘记 join 线程
+// ❌ Don't forget to join threads
 let handle = thread::spawn(|| { /* ... */ });
-handle.join();  // 总是要 join！
+handle.join(); // Always join!
 ```
 
-## 总结
+## Summary
 
-| 原语 | 使用场景 |
-|-----|---------|
-| `thread::spawn` | 基本线程 |
-| `Arc<Mutex<T>>` | 共享可变状态 |
-| `Arc<RwLock<T>>` | 读写锁 |
-| `mpsc::channel` | 消息传递 |
-| `Atomic*` | 无锁计数器/标志 |
-| `Barrier` | 线程组同步 |
-| `Condvar` | 等待条件 |
-| `tokio::spawn` | 异步任务 |
-| `rayon` | 并行迭代器 |
+| Primitive        | Use case                 |
+|------------------|--------------------------|
+| `thread::spawn`  | Basic threads            |
+| `Arc<Mutex<T>>`  | Shared mutable state     |
+| `Arc<RwLock<T>>` | Read-write lock          |
+| `mpsc::channel`  | Message passing          |
+| `Atomic*`        | Lock-free counters/flags |
+| `Barrier`        | Thread group sync        |
+| `Condvar`        | Wait conditions          |
+| `tokio::spawn`   | Async tasks              |
+| `rayon`          | Parallel iterators       |

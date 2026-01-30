@@ -1,70 +1,73 @@
 ---
 name: docs
-description: "查询 Rust 官方文档"
+description: "Query Rust official documentation"
 category: documentation
-triggers: ["docs", "documentation", "api", "文档", "API"]
+triggers: ["docs", "documentation", "api", "API"]
 related_skills:
-  - rust-learner
-  - rust-ecosystem
+ - rust-learner
+ - rust-ecosystem
 ---
 
-# Docs 命令
+# Docs Command
 
-## 功能说明
+## Functional description
 
-快速查询 Rust 官方文档和 API：
-- 标准库文档
--  crates.io 文档
-- 官方教程
-- RFC 文档
+Quickly query Rust official docs and APIs:
 
-## 使用方法
+- Standard library docs
+- crates.io docs
+- Official books/tutorials
+- RFCs
+
+## Usage
 
 ```bash
-# 查询 std 文档
+# Query std docs
 ./scripts/docs.sh std Vec
 
-# 查询 crate 文档
+# Query crate docs
 ./scripts/docs.sh crate serde
 
-# 打开本地文档
+# Open local docs
 ./scripts/docs.sh --local
 
-# 搜索文档
+# Search docs
 ./scripts/docs.sh --search "iterator"
 ```
 
-## 常用文档
+## Common docs
 
-### 标准库
-| 模块 | 用途 |
-|-----|------|
-| std::collections | 集合类型 |
-| std::sync | 同步原语 |
-| std::future | 异步基础 |
-| std::io | 输入输出 |
+### Standard library
 
-### 书籍和教程
-| 资源 | 地址 |
-|-----|------|
-| Rust Book | doc.rust-lang.org/book |
+| Module           | Use                        |
+|------------------|----------------------------|
+| std::collections | Collection types           |
+| std::sync        | Synchronization primitives |
+| std::future      | Async fundamentals         |
+| std::io          | Input/output               |
+
+### Books and tutorials
+
+| Resource        | URL                               |
+|-----------------|-----------------------------------|
+| Rust Book       | doc.rust-lang.org/book            |
 | Rust By Example | doc.rust-lang.org/rust-by-example |
-| Async Book | async-book.cloudshift.tw |
+| Async Book      | async-book.cloudshift.tw          |
 
-## 快速查询
+## Quick queries
 
 ```bash
-# 查询 trait 用法
+# Query trait usage
 ./scripts/docs.sh trait From
 
-# 查询宏定义
+# Query macro definition
 ./scripts/docs.sh macro vec!
 
-# 查询属性
+# Query attributes
 ./scripts/docs.sh attr derive
 ```
 
-## 关联技能
-- `rust-learner` - 学习引导
-- `rust-ecosystem` - crate 文档
+## Related skills
 
+- `rust-learner` - Learning guide
+- `rust-ecosystem` - Crate documentation

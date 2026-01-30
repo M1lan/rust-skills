@@ -1,27 +1,27 @@
 ---
 name: rust-async
-description: "高级异步模式专家。处理 Stream, backpressure, select, join, cancellation, Future trait 等问题。触发词：async, Stream, backpressure, select, Future, tokio, async-std, 异步, 流, 取消"
+description: "Advanced async patterns: Stream, backpressure, select!, join!, cancellation, Future. Triggers: async, Stream, backpressure, select, Future, tokio, async-std, cancel"
 globs: ["**/*.rs"]
 ---
 
-# 高级异步模式
+# Advanced Async Patterns
 
-## 核心问题
+## Core issues
 
-**如何在异步代码中正确处理流、控制和资源？**
+**Key question:** How do we handle flow control and resources correctly in async code?
 
-异步不是并行，但异步代码有独特的复杂性。
+Async is not the same as parallelism, and it introduces its own complexity.
 
 ---
 
-## Stream 处理
+## Stream processing
 
 ```rust
 use tokio_stream::{self as Stream, StreamExt};
 
 async fn process_stream(stream: impl Stream<Item = Data>) {
     stream
-        .chunks(100)           // 批量处理
+        .chunks(100) // Batch processing
         .for_each(|batch| async {
             process_batch(batch).await;
         })
@@ -29,12 +29,12 @@ async fn process_stream(stream: impl Stream<Item = Data>) {
 }
 ```
 
-### 背压 (Backpressure)
+### Backpressure
 
 ```rust
 use tokio::sync::Semaphore;
 
-let semaphore = Semaphore::new(10);  // 最多 10 个并发
+let semaphore = Semaphore::new(10); // At most 10 concurrent tasks.
 
 let stream = tokio_stream::iter(0..1000)
     .map(|i| {
@@ -44,12 +44,12 @@ let stream = tokio_stream::iter(0..1000)
             process(i).await
         }
     })
-    .buffer_unordered(100);  // 最多 100 并发
+    .buffer_unordered(100); // At most 100 concurrent items.
 ```
 
 ---
 
-## select! 多路复用
+## select! and timeouts
 
 ```rust
 use tokio::select;
@@ -64,9 +64,9 @@ async fn multiplex() {
                 }
             }
             _ = sleep(Duration::from_secs(5)) => {
-                // 超时处理
+                // Timeout handling
             }
-            else => break,  // 所有分支都完成
+            else => break, // All branches complete.
         }
     }
 }
@@ -74,7 +74,7 @@ async fn multiplex() {
 
 ---
 
-## 任务取消
+## Task cancellation
 
 ```rust
 use tokio::time::timeout;
@@ -83,18 +83,18 @@ async fn with_timeout() -> Result<Value, TimeoutError> {
     timeout(Duration::from_secs(5), long_operation()).await
 }
 
-// 协作式取消
+// Cooperative cancellation
 let mut task = tokio::spawn(async move {
     loop {
-        // 检查取消
+        // Check cancellation flag
         if task.is_cancelled() {
             return;
         }
-        // 继续工作
+        // Keep working.
     }
 });
 
-// 取消任务
+// Force-cancel
 task.abort();
 ```
 
@@ -103,13 +103,13 @@ task.abort();
 ## join! vs try_join!
 
 ```rust
-// 并行执行，不等待完成
+// Run in parallel, wait for both
 let (a, b) = tokio::join!(async_a(), async_b());
 
-// 全部成功才成功
+// Short-circuit on error
 let (a, b) = tokio::try_join!(async_a(), async_b())?;
 
-// 错误传播
+// Propagate errors
 fn combined() -> impl Future<Output = Result<(A, B), E>> {
     async {
         let (a, b) = try_join!(op_a(), op_b())?;
@@ -120,22 +120,21 @@ fn combined() -> impl Future<Output = Result<(A, B), E>> {
 
 ---
 
-## 常见错误
+## Common errors
 
-| 错误 | 原因 | 解决 |
+| Error | Reason | Solve |
 |-----|-----|-----|
-| 忘记 `.await` | future 不执行 | 检查 await |
-| 任务取消未处理 | 协作式取消缺失 | 检查 is_cancelled |
-| 背压缺失 | 无限制并发 | Semaphore/buffer |
-| 死锁 | 锁在 await 时持有 | 缩小锁范围 |
-| async Drop 未实现 | 资源泄漏 | 用 tokio::spawn 清理 |
+| Missing `.await` | Future not polled | Add `.await` |
+| Ignored cancellation | Tasks run forever | Add cancellation checks |
+| No backpressure | Unbounded concurrency | Use Semaphore/buffer |
+| Deadlock | Holding locks across await | Drop locks before `await` |
+| Detached tasks | Resource leaks | Use `tokio::spawn` carefully and track joins |
 
 ---
 
-## 性能提示
+## Performance hints
 
-- `select!` 比多个 `tokio::spawn` 更轻量
-- `buffer_unordered` 比 `for_each_concurrent` 更灵活
-- 大批量用 `.chunks()` 减少开销
-- 避免在锁内 await
-
+- Prefer bounded concurrency over unbounded fan-out.
+- `buffer_unordered` is more flexible; `buffered` preserves ordering.
+- Batching reduces overhead.
+- Minimize lock usage in async code.

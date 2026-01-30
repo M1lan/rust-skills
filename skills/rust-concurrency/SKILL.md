@@ -1,54 +1,54 @@
 ---
 name: rust-concurrency
-description: "并发与异步专家。处理 Send, Sync, thread, async, await, tokio, channel, Mutex, deadlock, race condition, 并发, 异步, 死锁等问题。触发词：thread, spawn, channel, mpsc, Mutex, RwLock, Atomic, async, await, Future, tokio, deadlock, race condition"
+description: "Concurrency and async expert. Covers Send/Sync, threads, async/await, tokio, channels, Mutex/RwLock, deadlocks, race conditions. Triggers: thread, spawn, channel, mpsc, Mutex, RwLock, Atomic, async, await, Future, tokio, deadlock, race condition"
 globs: ["**/*.rs"]
 ---
 
-# 并发与异步专家
+# Concurrency and Async
 
-## 核心问题
+## Core issues
 
-**数据如何在线程间安全传递？**
+**Key question:** How do we pass data safely across threads and tasks?
 
-这是并发的本质。Rust 的类型系统在这里发挥最大威力。
+Concurrency is about coordinating parallel work. Rust's type system provides strong guarantees here.
 
 ---
 
-## 并发 vs 异步
+## Threads vs async
 
-| 维度 | 并发 (thread) | 异步 (async) |
+| Dimension | Threads | Async |
 |-----|--------------|-------------|
-| 内存 | 每个线程有独立栈 | 单线程复用 |
-| 阻塞 | 阻塞 OS 线程 | 不阻塞，yield |
-| 适用 | CPU 密集型 | I/O 密集型 |
-| 复杂度 | 简单直接 | 需要运行时 |
+| Memory | Each thread has its own stack | Tasks share a runtime and reuse stacks |
+| Blocking | Blocks an OS thread | Does not block; yields to the runtime |
+| Use case | CPU-bound work | I/O-bound work |
+| Complexity | Simpler model | More complex scheduling |
 
 ---
 
-## Send/Sync 快速判断
+## Send/Sync quick judgement
 
-### Send - 可以在线程间转移所有权
-
-```
-基本类型 → 自动 Send
-包含引用 → 自动 Send
-Raw pointer → 非 Send
-Rc → 非 Send（引用计数非原子）
-```
-
-### Sync - 可以在线程间共享引用
+### Send - transfer of ownership across threads
 
 ```
-&T where T: Sync → 自动 Sync
-RefCell → 非 Sync（运行时检查非线程安全）
-MutexGuard → 非 Sync（未实现）
+Primitive types → auto Send
+References → auto Send if T: Sync
+Raw pointers → not Send
+Rc → not Send (non-atomic ref count)
+```
+
+### Sync - share references across threads
+
+```
+&T where T: Sync → Auto Sync
+RefCell → not Sync (runtime borrow checking is not thread-safe)
+MutexGuard → not Sync (not implemented)
 ```
 
 ---
 
-## 常见模式
+## Common patterns
 
-### 1. 共享可变状态
+### 1. Shared mutability
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -70,7 +70,7 @@ for handle in handles {
 }
 ```
 
-### 2. 消息传递
+### 2. Message passing
 
 ```rust
 use std::sync::mpsc;
@@ -84,7 +84,7 @@ thread::spawn(move || {
 println!("{}", rx.recv().unwrap());
 ```
 
-### 3. 异步运行时
+### 3. Async tasks
 
 ```rust
 use tokio;
@@ -92,30 +92,29 @@ use tokio;
 #[tokio::main]
 async fn main() {
     let handle = tokio::spawn(async {
-        // 异步任务
+        // A different task.
     });
-    
+
     handle.await.unwrap();
 }
 ```
 
 ---
 
-## 常见错误与解决
+## Common errors and fixes
 
-| 错误 | 原因 | 解决 |
+| Error | Reason | Solve |
 |-----|-----|-----|
-| E0277 Send not satisfied | 包含非 Send 类型 | 检查所有字段 |
-| E0277 Sync not satisfied | 共享引用类型非 Sync | 用 Mutex/RwLock 包装 |
-| Deadlock | 锁顺序不一致 | 统一加锁顺序 |
-| MutexGuard across await | 锁持有时挂起 | 缩小锁的作用域 |
+| E0277 Send not satisfied | Contains a non-Send type | Check field types or wrap with Arc/Mutex |
+| E0277 Sync not satisfied | Shared type is not Sync | Use Mutex/RwLock or redesign sharing |
+| Deadlock | Lock ordering differs | Enforce a consistent lock order |
+| MutexGuard across await | Holding a lock while awaiting | Drop the lock before `await` |
 
 ---
 
-## 性能考量
+## Performance considerations
 
-- 锁的粒度要细（锁住必要部分，不是整个数据结构）
-- 读写锁适合读多写少场景
-- 原子操作比锁更轻量，但只适合简单操作
-- 消息传递避免共享状态，但有复制开销
-
+- Keep lock granularity small.
+- Prefer RwLock when reads dominate writes.
+- Atomics are lighter than locks but only for simple updates.
+- Message passing avoids shared state but may increase copying.
