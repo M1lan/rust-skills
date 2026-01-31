@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we avoid deadlocks and achieve reliable communication in an actor system?
+Key question: How do we avoid deadlocks and achieve reliable communication in an actor system?
 
 The actor model simplifies concurrency through message passing and isolation.
 
@@ -16,13 +16,13 @@ The actor model simplifies concurrency through message passing and isolation.
 
 ## Actor vs thread model
 
-| Feature | Thread Model | Actor Model |
-|-----|---------|-----------|
-| State sharing | Shared memory + locks | Message passing |
-| Deadlock risk | High (lock order issues) | Low |
-| Scalability | Limited by threads | Can scale to many actors |
-| Fault management | Manual | Supervision tree |
-| Debugging | Hard (data races) | Easier (message ordering) |
+| Feature          | Thread Model             | Actor Model               |
+|------------------|--------------------------|---------------------------|
+| State sharing    | Shared memory + locks    | Message passing           |
+| Deadlock risk    | High (lock order issues) | Low                       |
+| Scalability      | Limited by threads       | Can scale to many actors  |
+| Fault management | Manual                   | Supervision tree          |
+| Debugging        | Hard (data races)        | Easier (message ordering) |
 
 ---
 
@@ -33,7 +33,7 @@ The actor model simplifies concurrency through message passing and isolation.
 trait Actor: Send + 'static {
  type Message: Send + 'static;
  type Error: std::error::Error;
- 
+
  fn receive(&mut self, ctx: &mut Context<Self::Message>, msg: Self::Message);
 }
 
@@ -70,9 +70,9 @@ fn sync_request<A: Actor, R>(
  payload: msg,
  response: tx,
  };
- 
+
  actor.send(request)?;
- 
+
  rx.recv_timeout(timeout)?
 }
 
@@ -112,9 +112,9 @@ fn send_with_timeout<A: Actor, M: Send + 'static>(
  timeout: Duration,
 ) -> Result<(), SendError<M>> {
  let (tx, rx) = channel();
- 
+
  addr.send(AsyncWrapper { msg, reply_to: tx });
- 
+
  rx.recv_timeout(timeout)
  .map(|_| ())
  .map_err(|_| SendError::Timeout)
@@ -157,14 +157,14 @@ impl Supervisor {
  fn handle_child_error(&mut self, child_id: ChildId, error: &dyn std::error::Error) {
  let child = self.children.get_mut(&child_id).unwrap();
  child.restart_count += 1;
- 
+
  if self.should_restart(child_id) {
  self.restart_child(child_id);
  } else {
  self.stop_child(child_id);
  }
  }
- 
+
  fn should_restart(&self, child_id: ChildId) -> bool {
  let child = &self.children[&child_id];
  child.restart_count <= self.max_restarts
@@ -187,7 +187,7 @@ struct UserActor {
 
 impl Actor for UserActor {
  type Message = UserMessage;
- 
+
  fn receive(&mut self, ctx: &mut Context<Self::Message>, msg: Self::Message) {
  match msg {
  UserMessage::Login(session) => {
@@ -240,15 +240,15 @@ trait LifecycleHandler: Actor {
  fn pre_start(&mut self, ctx: &mut Context<Self::Message>) {
  // Initialization Resources
  }
- 
+
  fn post_start(&mut self, ctx: &mut Context<Self::Message>) {
  // Start Timer,Connection etc.
  }
- 
+
  fn pre_restart(&mut self, ctx: &mut Context<Self::Message>, error: &dyn std::error::Error) {
  // Cleaning up resources
  }
- 
+
  fn post_stop(&mut self) {
  // Save Status,Close Connection
  }
@@ -269,7 +269,7 @@ struct MyActor {
 
 impl Actor for MyActor {
  type Context = Context<Self>;
- 
+
  fn started(&mut self, _ctx: &mut Self::Context) {
  println!("Actor started");
  }
@@ -281,7 +281,7 @@ struct Increment;
 
 impl Handler<Increment> for MyActor {
  type Result = usize;
- 
+
  fn handle(&mut self, msg: Increment, _ctx: &mut Self::Context) -> Self::Result {
  self.counter += 1;
  self.counter
@@ -297,18 +297,18 @@ let result = actor.send(Increment).await?;
 
 ## Common problems
 
-| Problem | Reason | Solve |
-|-----|------|-----|
-| Deadlock. | Can not open message | Timeout, avoiding cycle dependence |
-| Information backlog | Consumers slow | Back pressure, restricted flow. |
-| Memory Leak | Actor didn't stop. | Lifetime management |
-| Inconsistencies | Send Message | Ordered, single-lined |
+| Problem             | Reason               | Solve                              |
+|---------------------|----------------------|------------------------------------|
+| Deadlock.           | Can not open message | Timeout, avoiding cycle dependence |
+| Information backlog | Consumers slow       | Back pressure, restricted flow.    |
+| Memory Leak         | Actor didn't stop.   | Lifetime management                |
+| Inconsistencies     | Send Message         | Ordered, single-lined              |
 
 ---
 
 ## Links to other skills
 
-```
+```text
 rust-actor
  │
  ├─► rust-concurrency → Parallel Model

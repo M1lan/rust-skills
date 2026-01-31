@@ -8,7 +8,8 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we handle flow control and resources correctly in async code?
+Key question: How do we handle flow control and resources correctly in async
+code?
 
 Async is not the same as parallelism, and it introduces its own complexity.
 
@@ -100,7 +101,7 @@ task.abort();
 
 ---
 
-## join! vs try_join!
+## join! vs try_join
 
 ```rust
 // Run in parallel, wait for both
@@ -122,13 +123,13 @@ fn combined() -> impl Future<Output = Result<(A, B), E>> {
 
 ## Common errors
 
-| Error | Reason | Solve |
-|-----|-----|-----|
-| Missing `.await` | Future not polled | Add `.await` |
-| Ignored cancellation | Tasks run forever | Add cancellation checks |
-| No backpressure | Unbounded concurrency | Use Semaphore/buffer |
-| Deadlock | Holding locks across await | Drop locks before `await` |
-| Detached tasks | Resource leaks | Use `tokio::spawn` carefully and track joins |
+| Error                | Reason                     | Solve                                        |
+|----------------------|----------------------------|----------------------------------------------|
+| Missing `.await`     | Future not polled          | Add `.await`                                 |
+| Ignored cancellation | Tasks run forever          | Add cancellation checks                      |
+| No backpressure      | Unbounded concurrency      | Use Semaphore/buffer                         |
+| Deadlock             | Holding locks across await | Drop locks before `await`                    |
+| Detached tasks       | Resource leaks             | Use `tokio::spawn` carefully and track joins |
 
 ---
 

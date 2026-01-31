@@ -8,7 +8,8 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How can we safely extend kernel behavior without modifying kernel code?
+Key question: How can we safely extend kernel behavior without modifying kernel
+code?
 
 eBPF lets you run user-space logic safely inside the kernel.
 
@@ -16,13 +17,13 @@ eBPF lets you run user-space logic safely inside the kernel.
 
 ## eBPF vs kernel modules
 
-| Feature | eBPF | Kernel modules |
-|-----|------|---------|
+| Feature             | eBPF                  | Kernel modules         |
+|---------------------|-----------------------|------------------------|
 | Safety verification | Verified at load time | Manual review required |
-| Stability | Stable API | API may change |
-| Performance | JIT-compiled | High but risky |
-| Crash risk | Limited | Can crash the kernel |
-| Language support | C, Rust | C, Rust |
+| Stability           | Stable API            | API may change         |
+| Performance         | JIT-compiled          | High but risky         |
+| Crash risk          | Limited               | Can crash the kernel   |
+| Language support    | C, Rust               | C, Rust                |
 
 ---
 
@@ -215,18 +216,18 @@ jump_table.set(0, bpf.program("packet_filter").unwrap().fd(), 0)?;
 
 ## Performance optimization
 
-| Optimization | Method |
-|-------|------|
-| Map access | Batch reads, fewer syscalls |
-| Tail calls | Limit chain length |
+| Optimization    | Method                       |
+|-----------------|------------------------------|
+| Map access      | Batch reads, fewer syscalls  |
+| Tail calls      | Limit chain length           |
 | Data structures | Prefer arrays over hash maps |
-| Lock contention | Use PerCPU maps |
+| Lock contention | Use PerCPU maps              |
 
 ---
 
 ## Related skills
 
-```
+```text
 rust-ebpf
     │
     ├─► rust-embedded → no_std, kernel interfaces

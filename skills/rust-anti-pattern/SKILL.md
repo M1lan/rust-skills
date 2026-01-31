@@ -8,21 +8,22 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** Does this code hide a design problem?
+Key question: Does this code hide a design problem?
 
-Working code can still be non-idiomatic. Use anti-patterns as a guide for refactoring.
+Working code can still be non-idiomatic. Use anti-patterns as a guide for
+refactoring.
 
 ---
 
 ## Top 5 mistakes
 
-| Rank | Mistake | Better |
-|------|----------------------------|------------------------------------|
-| 1 | `.clone()` to avoid borrowing | Use references |
-| 2 | `.unwrap()` in production | Use `?` or `context()` |
-| 3 | `String` everywhere | Use `&str` or `Cow<str>` |
-| 4 | Index-based loops | Use `.iter()` / `.enumerate()` |
-| 5 | Fighting lifetimes | Redesign data structures |
+| Rank | Mistake                       | Better                         |
+|------|-------------------------------|--------------------------------|
+| 1    | `.clone()` to avoid borrowing | Use references                 |
+| 2    | `.unwrap()` in production     | Use `?` or `context()`         |
+| 3    | `String` everywhere           | Use `&str` or `Cow<str>`       |
+| 4    | Index-based loops             | Use `.iter()` / `.enumerate()` |
+| 5    | Fighting lifetimes            | Redesign data structures       |
 
 ---
 
@@ -116,27 +117,27 @@ let mut data: Vec<u8> = vec![0; size];
 
 ## Code smells
 
-| Smell | Implicit question | Fix |
-|------------------|--------------|------------------|
-| Many `.clone()` | Ownership unclear | Clarify data flow |
-| Many `.unwrap()` | Error handling missing | Use Result/Context |
-| Many `pub` fields | No encapsulation | Make fields private |
-| Deep nesting | Logic is hard to follow | Extract functions |
-| Very long functions | Too many responsibilities | Split functions |
-| Huge enums | Missing abstraction | Use traits/types |
+| Smell               | Implicit question         | Fix                 |
+|---------------------|---------------------------|---------------------|
+| Many `.clone()`     | Ownership unclear         | Clarify data flow   |
+| Many `.unwrap()`    | Error handling missing    | Use Result/Context  |
+| Many `pub` fields   | No encapsulation          | Make fields private |
+| Deep nesting        | Logic is hard to follow   | Extract functions   |
+| Very long functions | Too many responsibilities | Split functions     |
+| Huge enums          | Missing abstraction       | Use traits/types    |
 
 ---
 
 ## Outdated patterns
 
-| Obsolete | Modern |
-|----------------------------------|-----------------------|
-| Index loop `.items[i]` | `.iter().enumerate()` |
-| `collect::<Vec<_>>()` too early | Keep iterators lazy |
-| `lazy_static!` | `std::sync::OnceLock` |
-| `mem::transmute` | `as` or `TryFrom` |
-| Custom linked list | `Vec` or `VecDeque` |
-| Manual mutation hacks | `Cell`, `RefCell` |
+| Obsolete                        | Modern                |
+|---------------------------------|-----------------------|
+| Index loop `.items[i]`          | `.iter().enumerate()` |
+| `collect::<Vec<_>>()` too early | Keep iterators lazy   |
+| `lazy_static!`                  | `std::sync::OnceLock` |
+| `mem::transmute`                | `as` or `TryFrom`     |
+| Custom linked list              | `Vec` or `VecDeque`   |
+| Manual mutation hacks           | `Cell`, `RefCell`     |
 
 ---
 
@@ -155,14 +156,14 @@ let mut data: Vec<u8> = vec![0; size];
 
 ## Ask yourself
 
-1. **Is this code fighting Rust?**
- - If yes, redesign.
+1. Is this code fighting Rust?
+- If yes, redesign.
 
-2. **Is this line necessary?**
- - If it's only to dodge borrowing, rethink the design.
+1. Is this line necessary?
+- If it's only to dodge borrowing, rethink the design.
 
-3. **Will this unwrap panic?**
- - Use `?` or `context()` instead.
+1. Will this unwrap panic?
+- Use `?` or `context()` instead.
 
-4. **Is there a more idiomatic way?**
- - Look at std library APIs and community patterns.
+1. Is there a more idiomatic way?
+- Look at std library APIs and community patterns.

@@ -8,15 +8,16 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How should this resource be managed?
+Key question: How should this resource be managed?
 
-Selecting the right smart pointer is one of the core decisions of Rust programming.
+Selecting the right smart pointer is one of the core decisions of Rust
+programming.
 
 ---
 
 ## Selection decision tree
 
-```
+```text
 Need to share data?
  │
  ├─ No → Single owner
@@ -38,14 +39,14 @@ Need to share data?
 
 ## Smart pointer comparison
 
-| Type | Ownership | Thread-safe | Use case |
-|-----|-------|---------|---------|
-| `Box<T>` | Single owner | Yes | Heap allocation, recursive types, trait objects |
-| `Rc<T>` | Shared | No | Single-thread sharing, avoid cloning |
-| `Arc<T>` | Shared | Yes | Multi-thread sharing, read-only data |
-| `Weak<T>` | Weak | - | Break cycles |
-| `RefCell<T>` | Single owner | No | Runtime borrow checking |
-| `Cell<T>` | Single owner | No | Copy-type interior mutability |
+| Type         | Ownership    | Thread-safe | Use case                                        |
+|--------------|--------------|-------------|-------------------------------------------------|
+| `Box<T>`     | Single owner | Yes         | Heap allocation, recursive types, trait objects |
+| `Rc<T>`      | Shared       | No          | Single-thread sharing, avoid cloning            |
+| `Arc<T>`     | Shared       | Yes         | Multi-thread sharing, read-only data            |
+| `Weak<T>`    | Weak         | -           | Break cycles                                    |
+| `RefCell<T>` | Single owner | No          | Runtime borrow checking                         |
+| `Cell<T>`    | Single owner | No          | Copy-type interior mutability                   |
 
 ---
 
@@ -147,12 +148,12 @@ impl Drop for Guard<'_> {
 
 ## Performance hints
 
-| Scenario | Recommendation |
-|-----|------|
-| Lots of small objects | Use `Rc::make_mut()` to avoid clones |
-| Read-heavy | `RwLock` over `Mutex` |
-| Counters | Use `AtomicU64` instead of `Mutex<u64>` |
-| Cache | Consider `moka` or `cached` |
+| Scenario              | Recommendation                          |
+|-----------------------|-----------------------------------------|
+| Lots of small objects | Use `Rc::make_mut()` to avoid clones    |
+| Read-heavy            | `RwLock` over `Mutex`                   |
+| Counters              | Use `AtomicU64` instead of `Mutex<u64>` |
+| Cache                 | Consider `moka` or `cached`             |
 
 ---
 

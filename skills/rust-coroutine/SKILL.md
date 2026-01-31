@@ -8,21 +8,22 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we implement efficient lightweight concurrency?
+Key question: How do we implement efficient lightweight concurrency?
 
-Coroutines provide user-space context switching and avoid kernel-thread overhead.
+Coroutines provide user-space context switching and avoid kernel-thread
+overhead.
 
 ---
 
 ## Coroutines vs threads
 
-| Feature | OS threads | Coroutines |
-|-----|--------|------|
-| Scheduling | Kernel | User space |
-| Switch cost | ~1μs | ~100ns |
-| Count | Thousands | Hundreds of thousands |
-| Stack size | 1-8MB | A few KB |
-| Preemption | Preemptive | Cooperative |
+| Feature     | OS threads | Coroutines            |
+|-------------|------------|-----------------------|
+| Scheduling  | Kernel     | User space            |
+| Switch cost | ~1μs       | ~100ns                |
+| Count       | Thousands  | Hundreds of thousands |
+| Stack size  | 1-8MB      | A few KB              |
+| Preemption  | Preemptive | Cooperative           |
 
 ---
 
@@ -325,18 +326,18 @@ impl Scheduler {
 
 ## Common problems
 
-| Problem | Cause | Fix |
-|-----|------|-----|
-| Coroutine doesn't run | Missing scheduler | Implement or use a scheduler |
-| Stack overflow | Recursion too deep | Use heap-allocated stacks |
-| Memory leak | Task never completes | Clean up coroutines correctly |
-| Deadlock | Circular waiting | Avoid cyclic dependencies |
+| Problem               | Cause                | Fix                           |
+|-----------------------|----------------------|-------------------------------|
+| Coroutine doesn't run | Missing scheduler    | Implement or use a scheduler  |
+| Stack overflow        | Recursion too deep   | Use heap-allocated stacks     |
+| Memory leak           | Task never completes | Clean up coroutines correctly |
+| Deadlock              | Circular waiting     | Avoid cyclic dependencies     |
 
 ---
 
 ## Related skills
 
-```
+```text
 rust-coroutine
     │
     ├─► rust-async → async/await implementation

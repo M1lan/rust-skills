@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we ensure resources are neither leaked nor freed twice?
+Key question: How do we ensure resources are neither leaked nor freed twice?
 
 Linear-type semantics guarantee each resource is used exactly once.
 
@@ -16,13 +16,13 @@ Linear-type semantics guarantee each resource is used exactly once.
 
 ## Linear types vs Rust ownership
 
-| Feature | Rust ownership | Linear types |
-|-----|------------|---------|
-| Move semantics | ✓ | ✓ |
-| Copy semantics | Optional | ✗ |
-| Destruction guarantee | Drop | Destructible |
-| Borrowing | ✓ | ✗ or restricted |
-| Shared ownership | Rc/Arc | ✗ |
+| Feature               | Rust ownership | Linear types    |
+|-----------------------|----------------|-----------------|
+| Move semantics        | ✓              | ✓               |
+| Copy semantics        | Optional       | ✗               |
+| Destruction guarantee | Drop           | Destructible    |
+| Borrowing             | ✓              | ✗ or restricted |
+| Shared ownership      | Rc/Arc         | ✗               |
 
 Rust is not linear by default, but you can implement linear semantics via patterns.
 
@@ -232,31 +232,31 @@ impl<T> Drop for UniquePtr<T> {
 
 ## Linear semantics in Rust
 
-| Scenario | Linear guarantee | Pattern |
-|-----|---------|------|
-| File handle | Close exactly once | RAII + Drop |
-| Network connection | Close exactly once | RAII + Drop |
-| Memory allocation | Free exactly once | RAII + Drop |
-| Lock | Unlock exactly once | RAII + Drop |
-| Transaction | Commit or rollback | Transactional pattern |
-| FFI resource | Release exactly once | Resource tokens |
+| Scenario           | Linear guarantee     | Pattern               |
+|--------------------|----------------------|-----------------------|
+| File handle        | Close exactly once   | RAII + Drop           |
+| Network connection | Close exactly once   | RAII + Drop           |
+| Memory allocation  | Free exactly once    | RAII + Drop           |
+| Lock               | Unlock exactly once  | RAII + Drop           |
+| Transaction        | Commit or rollback   | Transactional pattern |
+| FFI resource       | Release exactly once | Resource tokens       |
 
 ---
 
 ## Avoided patterns
 
-| Anti-pattern | Problem | Better |
-|-------|------|---------|
-| Clone allows copying | Breaks linear semantics | Use move semantics |
-| Rc/Arc sharing | Multiple ownership | Use linear tokens |
-| Manual lifetime management | Error-prone | RAII + Drop |
-| Skipping Drop | Resource leaks | Scope-based APIs |
+| Anti-pattern               | Problem                 | Better             |
+|----------------------------|-------------------------|--------------------|
+| Clone allows copying       | Breaks linear semantics | Use move semantics |
+| Rc/Arc sharing             | Multiple ownership      | Use linear tokens  |
+| Manual lifetime management | Error-prone             | RAII + Drop        |
+| Skipping Drop              | Resource leaks          | Scope-based APIs   |
 
 ---
 
 ## Related skills
 
-```
+```text
 rust-linear-type
     │
     ├─► rust-resource → RAII and Drop patterns

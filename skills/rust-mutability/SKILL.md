@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** Does the data need to change, and who controls the change?
+Key question: Does the data need to change, and who controls the change?
 
 Mutability changes program state and requires careful design.
 
@@ -16,19 +16,19 @@ Mutability changes program state and requires careful design.
 
 ## Mutability types
 
-| Type | Controller | Thread-safe | Use case |
-|-----|-------|---------|---------|
-| `&mut T` | External caller | Yes | Standard mutable borrowing |
-| `Cell<T>` | Internal | No | Copy-type interior mutability |
-| `RefCell<T>` | Internal | No | Non-Copy interior mutability |
-| `Mutex<T>` | Internal | Yes | Cross-thread interior mutability |
-| `RwLock<T>` | Internal | Yes | Many readers, few writers |
+| Type         | Controller      | Thread-safe | Use case                         |
+|--------------|-----------------|-------------|----------------------------------|
+| `&mut T`     | External caller | Yes         | Standard mutable borrowing       |
+| `Cell<T>`    | Internal        | No          | Copy-type interior mutability    |
+| `RefCell<T>` | Internal        | No          | Non-Copy interior mutability     |
+| `Mutex<T>`   | Internal        | Yes         | Cross-thread interior mutability |
+| `RwLock<T>`  | Internal        | Yes         | Many readers, few writers        |
 
 ---
 
 ## The rules
 
-```
+```text
 At any time:
 ├─ Many `&T` (immutable borrows)
 └─ Or one `&mut T` (mutable borrow)
@@ -40,12 +40,12 @@ They cannot coexist.
 
 ## Error code quick check
 
-| Error Code | Meaning | Don't say | Ask |
-|-------|------|--------|------|
-| E0596 | Cannot borrow mutably | "add mut" | Does this need to change? |
-| E0499 | Multiple mutable borrows | "split borrows" | Is the data structured correctly? |
-| E0502 | Mutable + immutable overlap | "separate scopes" | Why do you need both at once? |
-| RefCell panic | Runtime borrow error | "use try_borrow" | Is runtime checking acceptable? |
+| Error Code    | Meaning                     | Don't say         | Ask                               |
+|---------------|-----------------------------|-------------------|-----------------------------------|
+| E0596         | Cannot borrow mutably       | "add mut"         | Does this need to change?         |
+| E0499         | Multiple mutable borrows    | "split borrows"   | Is the data structured correctly? |
+| E0502         | Mutable + immutable overlap | "separate scopes" | Why do you need both at once?     |
+| RefCell panic | Runtime borrow error        | "use try_borrow"  | Is runtime checking acceptable?   |
 
 ---
 
@@ -134,17 +134,17 @@ if let Ok(mut_borrow) = cell.try_borrow_mut() {
 ## Design checklist
 
 1. Is mutation necessary?
- - Could you return a new value instead?
- - Can it be immutable?
+- Could you return a new value instead?
+- Can it be immutable?
 
-2. Who controls mutation?
- - External caller
- - Internal logic (interior mutability)
- - Thread-safe synchronization
+1. Who controls mutation?
+- External caller
+- Internal logic (interior mutability)
+- Thread-safe synchronization
 
-3. Concurrency scope?
- - Single-thread
- - Multi-thread
+1. Concurrency scope?
+- Single-thread
+- Multi-thread
 
 ---
 
@@ -152,7 +152,7 @@ if let Ok(mut_borrow) = cell.try_borrow_mut() {
 
 If conflicts persist:
 
-```
+```text
 E0499/E0502 (borrow conflict)
  ↑ Ask: is the data structure right?
  ↑ rust-type-driven: should we split the data?

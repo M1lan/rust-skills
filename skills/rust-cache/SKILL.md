@@ -12,13 +12,14 @@ related_skills:
 
 # Rust Cache - Cache Management Skills
 
-> This skill provides systematic solutions for Redis caches, including connection management, cache strategies, performance optimization, etc.
+> This skill provides systematic solutions for Redis caches, including
+> connection management, cache strategies, performance optimization, etc.
 
 ## Core concepts
 
 ### 1. Cache structure design
 
-```
+```text
 Cache layer design pattern
 ├── Cache Manager (CacheManager)
 │ ├── Connection Management (ConnectionManager)
@@ -36,10 +37,10 @@ Cache layer design pattern
 
 ### 2. Performance enhancement data
 
-| scene | No Cache | Cache | Raise |
-|----------|--------|--------|----------|
-| Complex queries | ~100ms | <5ms | **95%+** |
-| Frequent visits | ~50ms | <2ms | **96%** |
+| scene           | No Cache | Cache | Raise    |
+|-----------------|----------|-------|----------|
+| Complex queries | ~100ms   | <5ms  | **95%+** |
+| Frequent visits | ~50ms    | <2ms  | **96%**  |
 
 ---
 
@@ -370,11 +371,11 @@ impl Default for CacheConfig {
 
 ### 1. Cache strategy selection
 
-| Policy | Apply scene | Strengths | Disadvantages |
-|-------------------|------------------|------------|----------------|
-| **Cache-Aside** | Read and write. | Simple, reliable. | Risk of cache inconsistency |
-| **Write-Through** | High data consistency requirements | Strong coherence | Write delay increase |
-| **Write-Behind** | High write throughput | Writing performance high | Risk of data loss |
+| Policy        | Apply scene                        | Strengths                | Disadvantages               |
+|---------------|------------------------------------|--------------------------|-----------------------------|
+| Cache-Aside   | Read and write.                    | Simple, reliable.        | Risk of cache inconsistency |
+| Write-Through | High data consistency requirements | Strong coherence         | Write delay increase        |
+| Write-Behind  | High write throughput              | Writing performance high | Risk of data loss           |
 
 ### Two. . TTL Layer Design
 
@@ -526,13 +527,13 @@ impl CacheMetrics {
 
 ## Question screening
 
-| Problem | Possible causes | Solutions |
-|--------------------|----------------------|------------------------|
-| Low Cache Rate | TTL not set properly | Adjust TTL to distinguish heat from cold data |
-| Redis connection timed out | Network delayed or connect pool depleted | Increase timeout, expand the connect pool |
-| Cache does not match database | Also writes Unlocked | Use distributed locks |
-| Overuse of memory | Cache data is too big | Enable compression with maximum capacity |
-| Batch delete blocks | Using DEL instead of SCAN | Use SCAN-based deletion instead |
+| Problem                       | Possible causes                          | Solutions                                     |
+|-------------------------------|------------------------------------------|-----------------------------------------------|
+| Low Cache Rate                | TTL not set properly                     | Adjust TTL to distinguish heat from cold data |
+| Redis connection timed out    | Network delayed or connect pool depleted | Increase timeout, expand the connect pool     |
+| Cache does not match database | Also writes Unlocked                     | Use distributed locks                         |
+| Overuse of memory             | Cache data is too big                    | Enable compression with maximum capacity      |
+| Batch delete blocks           | Using DEL instead of SCAN                | Use SCAN-based deletion instead               |
 
 ---
 

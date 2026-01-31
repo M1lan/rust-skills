@@ -261,10 +261,10 @@ impl RateLimiting {
 
 ## Common problems
 
-| Problem | Cause | Fix |
-|-----|------|-----|
-| CORS failures | Origin configuration | Check `allowed_origin_fn` |
-| Rate limiting false positives | In-memory counters | Use Redis in production |
+| Problem                       | Cause                | Fix                       |
+|-------------------------------|----------------------|---------------------------|
+| CORS failures                 | Origin configuration | Check `allowed_origin_fn` |
+| Rate limiting false positives | In-memory counters   | Use Redis in production   |
 
 ---
 

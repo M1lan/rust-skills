@@ -18,7 +18,7 @@ related_skills:
 
 ### 1. Policy engine architecture
 
-```
+```text
 Policy decision flow
 ┌─────────────────────────────────────────────────────────────┐
 │ Request context │
@@ -40,12 +40,12 @@ Policy decision flow
 
 ### 2. Decision types
 
-| Result | Meaning | Handling |
-|-----|------|-----|
-| **Permit** | Access allowed | Execute operation |
-| **Deny** | Access denied | Return 403 |
-| **NotApplicable** | No matching policy | Use default rule |
-| **Indeterminate** | Evaluation error | Return 500 |
+| Result            | Meaning            | Handling          |
+|-------------------|--------------------|-------------------|
+| Permit        | Access allowed     | Execute operation |
+| Deny          | Access denied      | Return 403        |
+| NotApplicable | No matching policy | Use default rule  |
+| Indeterminate | Evaluation error   | Return 500        |
 
 ---
 
@@ -412,7 +412,7 @@ impl PolicyCache {
  /// Storage policy
  pub async fn set(&self, policy: Policy) {
  let mut cache = self.cache.write().await;
- 
+
  // Clear expired entries
  let now = Instant::now();
  cache.retain(|_, v| now.duration_since(v.inserted_at) < self.config.ttl);
@@ -540,11 +540,11 @@ fn example_policy() -> Policy {
 
 ## Common problems
 
-| Problem | Reason | Solutions |
-|-----|------|---------|
+| Problem                      | Reason                                   | Solutions                                           |
+|------------------------------|------------------------------------------|-----------------------------------------------------|
 | Inconsistent decision-making | Improper choice of combination algorithm | Selecting the right algorithm according to business |
-| Poor performance | Too many strategies. | Use cache and index |
-| Permission bypassed | Question of the order of rules | DenyOverrides Priority |
+| Poor performance             | Too many strategies.                     | Use cache and index                                 |
+| Permission bypassed          | Question of the order of rules           | DenyOverrides Priority                              |
 
 ---
 

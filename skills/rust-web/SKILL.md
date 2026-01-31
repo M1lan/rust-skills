@@ -8,11 +8,11 @@ globs: ["**/*.rs"]
 
 ## Mainstream framework selection
 
-| Framework | Characteristics | Recommended use case |
-|-----|------|---------|
-| **axum** | Modern, Tokio ecosystem, type-safe | Preferred for new projects |
-| **actix-web** | High performance, actor model | High-performance requirements |
-| **rocket** | Developer-friendly, zero config | Rapid prototyping |
+| Framework | Characteristics                    | Recommended use case          |
+|-----------|------------------------------------|-------------------------------|
+| axum      | Modern, Tokio ecosystem, type-safe | Preferred for new projects    |
+| actix-web | High performance, actor model      | High-performance requirements |
+| rocket    | Developer-friendly, zero config    | Rapid prototyping             |
 
 ---
 
@@ -181,32 +181,32 @@ tx.commit().await?;
 
 ## Web development best practices
 
-| Scenario | Recommended practice |
-|-----|---------|
+| Scenario           | Recommended practice                        |
+|--------------------|---------------------------------------------|
 | JSON serialization | `#[derive(Serialize, Deserialize)]` + serde |
-| Configuration | `config` crate + env files |
-| Logging | `tracing` + `tracing-subscriber` |
-| Health checks | `GET /health` endpoint |
-| CORS | `tower_http::cors` |
-| Rate limiting | `tower::limit` |
-| OpenAPI | `utoipa` |
+| Configuration      | `config` crate + env files                  |
+| Logging            | `tracing` + `tracing-subscriber`            |
+| Health checks      | `GET /health` endpoint                      |
+| CORS               | `tower_http::cors`                          |
+| Rate limiting      | `tower::limit`                              |
+| OpenAPI            | `utoipa`                                    |
 
 ---
 
 ## Common errors
 
-| Error | Cause | Fix |
-|-----|-----|-----|
-| State shared between handlers | `Rc` not thread-safe | Use `Arc` |
-| Async handler holds a lock | Possible deadlock | Reduce lock scope |
-| Errors not propagated | Handler returns error | Implement `IntoResponse` |
-| Large request body | Memory pressure | Set size limits |
+| Error                         | Cause                 | Fix                      |
+|-------------------------------|-----------------------|--------------------------|
+| State shared between handlers | `Rc` not thread-safe  | Use `Arc`                |
+| Async handler holds a lock    | Possible deadlock     | Reduce lock scope        |
+| Errors not propagated         | Handler returns error | Implement `IntoResponse` |
+| Large request body            | Memory pressure       | Set size limits          |
 
 ---
 
 ## Project structure reference
 
-```
+```text
 src/
 ├── main.rs           # Entry
 ├── lib.rs            # Shared code

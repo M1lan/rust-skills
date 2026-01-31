@@ -12,13 +12,14 @@ related_skills:
 
 # Rust Auth - Authentication & Authorization Skills
 
-> This skill provides end-to-end authentication and authorization solutions including JWT, API keys, and distributed token storage.
+> This skill provides end-to-end authentication and authorization solutions
+> including JWT, API keys, and distributed token storage.
 
 ## Core concepts
 
 ### 1. Authentication architecture design
 
-```
+```text
 Authentication & authorization architecture
 ├── Authentication layer
 │ ├── JWT authentication
@@ -36,11 +37,11 @@ Authentication & authorization architecture
 
 ### 2. Authentication method comparison
 
-| Method | Use case | Security | Implementation complexity |
-|---------|---------|--------|----------|
-| **JWT token** | Frontend/backend split, API access | High | Medium |
-| **API key** | Service-to-service calls, automation | Medium | Low |
-| **Two-factor** | High-security requirements | Very high | High |
+| Method     | Use case                             | Security  | Implementation complexity |
+|------------|--------------------------------------|-----------|---------------------------|
+| JWT token  | Frontend/backend split, API access   | High      | Medium                    |
+| API key    | Service-to-service calls, automation | Medium    | Low                       |
+| Two-factor | High-security requirements           | Very high | High                      |
 
 ---
 
@@ -122,7 +123,7 @@ impl JwtService {
  /// Verify & Parsing Token
  pub fn verify_token(&self, token: &str) -> Result<Claims, JwtError> {
  let validation = Validation::new(self.algorithm);
- 
+
  decode::<Claims>(token, &self.decoding_key, &validation)
  .map(|data| data.claims)
  .map_err(|e| match e.kind() {
@@ -193,10 +194,10 @@ impl ApiKeyGenerator {
  let key_id = Self::generate_key_id();
  let secret = Self::generate_secret();
  let signature = Self::compute_signature(config, &key_id, &secret);
- 
+
  let api_key = format!("{}_{}_{}", config.prefix, key_id, signature);
  let secret_hash = Self::hash_secret(config, &secret);
- 
+
  (api_key, secret_hash)
  }
 
@@ -221,7 +222,7 @@ impl ApiKeyGenerator {
  }
 
  if let Some(client_ip) = ip {
- if !config.allowed_ips.is_empty() 
+ if !config.allowed_ips.is_empty()
  && !config.allowed_ips.contains(&client_ip.to_string()) {
  return Err(ApiKeyError::InvalidKey);
  }
@@ -308,10 +309,10 @@ impl TokenStore {
  if let Some(ref mut redis) = self.redis {
  let prefix = &self.config.prefix;
  let key = format!("{}:tokens:{}", prefix, user_id);
- 
+
  // Count existing tokens for the user
  let current_count: usize = redis.scard(&key).await?;
- 
+
  if current_count >= max_concurrent {
  if let Some(old_token) = redis.spop::<String>(&key).await? {
  redis.del(&format!("{}:token:{}", prefix, old_token)).await?;
@@ -343,7 +344,7 @@ impl TokenStore {
  let prefix = &self.config.prefix;
  let set_key = format!("{}:tokens:{}", prefix, user_id);
  let token_ids: Vec<String> = redis.smembers(&set_key).await?;
- 
+
  for token_id in token_ids {
  redis.del(&format!("{}:token:{}", prefix, token_id)).await?;
  }
@@ -447,7 +448,7 @@ impl PasswordHasher {
  pub fn hash_password(password: &str) -> Result<String, argon2::Error> {
  let salt = rand::thread_rng().gen::<[u8; 32]>();
  let config = Config::default();
- 
+
  argon2::hash_raw(password.as_bytes(), &salt, &config)
  .map(|bytes| {
  let salt_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &salt);
@@ -459,7 +460,7 @@ impl PasswordHasher {
  /// Authentication password
  pub fn verify_password(password: &str, stored_hash: &str) -> Result<bool, argon2::Error> {
  use subtle::ConstantTimeEq;
- 
+
  let parts: Vec<&str> = stored_hash.split('$').collect();
  if parts.len() != 5 { return Ok(false); }
 
@@ -478,12 +479,12 @@ impl PasswordHasher {
 
 ## Question screening
 
-| Problem | Reason | Solutions |
-|-----|------|---------|
-| Token Expire | Time window problem | Refresh token |
-| The simultaneous login is abnormal. | Redis Connection | Check connect pool |
-| API Key embezzlement | No IP white list configured | Enable IP limitations |
-| Password authentication slow | Argon2 Time-consuming | Adjusting work factors |
+| Problem                             | Reason                      | Solutions              |
+|-------------------------------------|-----------------------------|------------------------|
+| Token Expire                        | Time window problem         | Refresh token          |
+| The simultaneous login is abnormal. | Redis Connection            | Check connect pool     |
+| API Key embezzlement                | No IP white list configured | Enable IP limitations  |
+| Password authentication slow        | Argon2 Time-consuming       | Adjusting work factors |
 
 ---
 

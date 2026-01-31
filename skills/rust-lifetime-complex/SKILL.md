@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** Why can't this type conversion compile?
+Key question: Why can't this type conversion compile?
 
 The boundaries of type systems are often unexpected.
 
@@ -76,7 +76,7 @@ let repo: Arc<dyn ReportRepo> = ...; // ❌ Compiler error
 
 ### Error message
 
-```
+```text
 error[E0038]: the trait cannot be made into an object
 because associated type `Row` has generic parameters
 ```
@@ -112,7 +112,7 @@ impl PublicRepo for PgRepo {
 
 ### Chart
 
-```
+```text
 GraphQL layer (requires 'static)
  ↓
  PublicRepo Trait (owned)
@@ -150,7 +150,7 @@ async fn resolve(&self) -> Result<ReportDto> {
 
 ### When?
 
-- Borrow only for **very short** scopes (e.g. within one function).
+- Borrow only for very short scopes (e.g. within one function).
 - Own data at API boundaries.
 - Use borrowing only when performance gains are significant.
 
@@ -158,13 +158,13 @@ async fn resolve(&self) -> Result<ReportDto> {
 
 ## Common conflict patterns
 
-| Pattern | Causes of conflict | Solve |
-|-----|---------|-----|
-| HRTB → dyn | Specific vs universal | Keep HRTB at function boundary |
-| GAT → dyn | Not object-safe | Layer the API |
-| 'static + borrow | Lifetime conflict | Return owned data |
-| Async + lifetime | Futures hold state across await | Drop borrows before await |
-| Closure Capture + Send | Lifetime issues | Cloning or 'static |
+| Pattern                | Causes of conflict              | Solve                          |
+|------------------------|---------------------------------|--------------------------------|
+| HRTB → dyn             | Specific vs universal           | Keep HRTB at function boundary |
+| GAT → dyn              | Not object-safe                 | Layer the API                  |
+| 'static + borrow       | Lifetime conflict               | Return owned data              |
+| Async + lifetime       | Futures hold state across await | Drop borrows before await      |
+| Closure Capture + Send | Lifetime issues                 | Cloning or 'static             |
 
 ---
 
@@ -178,7 +178,7 @@ fn should_borrow() -> bool {
  // Large data structure → borrow
  // High-frequency access → borrow
  // Simple lifetimes → borrow
- 
+
  // Complex lifetimes → owned
  // API boundary → owned
  // Async context → owned
@@ -187,10 +187,10 @@ fn should_borrow() -> bool {
 
 ### Rules of thumb
 
-1. **API layer**: default to owned
-2. **Internal implementation**: borrow when needed
-3. **Performance hotspots**: consider borrowing
-4. **High complexity**: fall back to owned
+1. API layer: default to owned
+2. Internal implementation: borrow when needed
+3. Performance hotspots: consider borrowing
+4. High complexity: fall back to owned
 
 ---
 
@@ -198,16 +198,16 @@ fn should_borrow() -> bool {
 
 ### Compiler errors
 
-| Error | Meaning |
-|-----|------|
-| "one type is more general" | Trying to treat a specific type as more general |
-| "lifetime may not live long enough" | Borrow outlives its scope |
-| "cannot be made into an object" | GAT+dyn is incompatible |
-| "does not live long enough" | Borrow ends too early |
+| Error                               | Meaning                                         |
+|-------------------------------------|-------------------------------------------------|
+| "one type is more general"          | Trying to treat a specific type as more general |
+| "lifetime may not live long enough" | Borrow outlives its scope                       |
+| "cannot be made into an object"     | GAT+dyn is incompatible                         |
+| "does not live long enough"         | Borrow ends too early                           |
 
 ### Methodology
 
-1. **Minimize**: produce the smallest repro case
-2. **Annotate lifetimes**: write them explicitly
-3. **Simplify step by step**: remove abstractions
-4. **Accept reality**: not all designs are object-safe or borrow-friendly
+1. Minimize: produce the smallest repro case
+2. Annotate lifetimes: write them explicitly
+3. Simplify step by step: remove abstractions
+4. Accept reality: not all designs are object-safe or borrow-friendly

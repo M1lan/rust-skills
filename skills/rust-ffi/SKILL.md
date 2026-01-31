@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we safely pass data between Rust and C/C++?
+Key question: How do we safely pass data between Rust and C/C++?
 
 FFI is unsafe by nature; mistakes can cause undefined behavior.
 
@@ -37,16 +37,16 @@ cbindgen --crate mylib --output include/mylib.h
 
 ## Type mapping
 
-| Rust | C | Notes |
-|-----|---|---------|
-| `i32` | `int` | Usually match |
-| `i64` | `long long` | Platform-dependent |
-| `usize` | `uintptr_t` | Pointer-sized |
-| `*const T` | `const T*` | Read-only |
-| `*mut T` | `T*` | Writable |
-| `&CStr` | `const char*` | UTF-8 string |
-| `CString` | `char*` | Owned C string |
-| `NonNull<T>` | `T*` | Non-null pointer |
+| Rust         | C             | Notes              |
+|--------------|---------------|--------------------|
+| `i32`        | `int`         | Usually match      |
+| `i64`        | `long long`   | Platform-dependent |
+| `usize`      | `uintptr_t`   | Pointer-sized      |
+| `*const T`   | `const T*`    | Read-only          |
+| `*mut T`     | `T*`          | Writable           |
+| `&CStr`      | `const char*` | UTF-8 string       |
+| `CString`    | `char*`       | Owned C string     |
+| `NonNull<T>` | `T*`          | Non-null pointer   |
 
 ---
 
@@ -137,11 +137,11 @@ pub extern "C" fn safe_call() {
 
 ## Memory management
 
-| Scenario | Who frees? | How |
-|-----|-------|-------|
-| C allocation, Rust use | C | Free |
-| Rust allocation, C use | Rust | Provide free function |
-| Shared buffer | Both | Document ownership rules |
+| Scenario               | Who frees? | How                      |
+|------------------------|------------|--------------------------|
+| C allocation, Rust use | C          | Free                     |
+| Rust allocation, C use | Rust       | Provide free function    |
+| Shared buffer          | Both       | Document ownership rules |
 
 ---
 
@@ -159,23 +159,23 @@ pub extern "C" fn safe_call() {
 
 ## Language bindings
 
-| Language | Tool | Use case |
-|-----|------|-----|
-| Python | PyO3 | Python extension |
-| Java | jni | Android/JVM |
-| Node.js | napi-rs | Node.js Extension |
-| C# | cppwinrt | Windows |
-| Go | cgo | Go bridge |
+| Language | Tool     | Use case          |
+|----------|----------|-------------------|
+| Python   | PyO3     | Python extension  |
+| Java     | jni      | Android/JVM       |
+| Node.js  | napi-rs  | Node.js Extension |
+| C#       | cppwinrt | Windows           |
+| Go       | cgo      | Go bridge         |
 
 ---
 
 ## Safety guidelines
 
-1. **Minimize unsafe:** only at FFI boundaries.
-2. **Defensive programming:** validate pointers and lengths.
-3. **Document ownership:** who allocates and who frees.
-4. **Type coverage:** FFI bugs are hard to debug.
-5. **Use Miri/ASan:** catch undefined behavior early.
+1. Minimize unsafe: only at FFI boundaries.
+2. Defensive programming: validate pointers and lengths.
+3. Document ownership: who allocates and who frees.
+4. Type coverage: FFI bugs are hard to debug.
+5. Use Miri/ASan: catch undefined behavior early.
 
 ---
 
@@ -192,14 +192,14 @@ use cxx::CxxVector;
 mod ffi {
  unsafe extern "C++" {
  include!("my_library.h");
- 
+
  type MyClass;
- 
+
  fn do_something(&self, input: i32) -> i32;
  fn get_data(&self) -> &CxxString;
  fn process_vector(&self, vec: &CxxVector<i32>) -> i32;
  }
- 
+
  #[namespace = "mylib"]
  unsafe extern "C++" {
  fn free_resource(ptr: *mut c_void);
@@ -218,7 +218,7 @@ impl RustWrapper {
  }
  }
  }
- 
+
  pub fn do_something(&self, input: i32) -> i32 {
  unsafe {
  (*self.ptr).do_something(input)
@@ -248,7 +248,7 @@ pub extern "C" fn safe_cpp_call() -> i32 {
  cpp_function_that_might_throw()
  }
  });
- 
+
  match result {
  Ok(value) => value,
  Err(_) => {
@@ -266,7 +266,7 @@ pub extern "C" fn checked_cpp_call(error_code: *mut i32) -> *const c_char {
  cpp_function()
  }
  });
- 
+
  match result {
  Ok(Ok(value)) => {
  // Success
@@ -300,7 +300,7 @@ pub extern "C" fn checked_cpp_call(error_code: *mut i32) -> *const c_char {
 pub extern "C" fn rust_function() {
  // Rust code may panic.
  // If a panic crosses into C++, it's UB.
- 
+
  // Solution: catch_unwind
  let _ = std::panic::catch_unwind(|| {
  risky_rust_code()
@@ -331,12 +331,12 @@ impl Drop for Wrapper {
 mod ffi {
  unsafe extern "C++" {
  include!("memory");
- 
+
  type UniquePtr<T>;
- 
+
  // Transfer of title:Rust → C++
  fn take_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
- 
+
  // Transfer of title:C++ → Rust
  fn create_unique_ptr() -> Box<UniquePtr<T>>;
  fn release_unique_ptr(ptr: Box<UniquePtr<T>>) -> *mut T;
@@ -356,11 +356,11 @@ impl<T> SharedPtr<T> {
  ref_count: 1,
  }
  }
- 
+
  pub fn clone(&mut self) {
  self.ref_count += 1;
  }
- 
+
  pub fn drop(&mut self) {
  self.ref_count -= 1;
  if self.ref_count == 0 {
@@ -380,10 +380,10 @@ unsafe impl<T> Sync for SharedPtr<T> {}
 
 ## Common problems
 
-| Problem | Reason | Solve |
-|-----|------|-----|
-| C++ Unusual Cause Panic | Uncaptured anomaly | catch_unwind |
-| Memory Double Release | Lack of ownership | Clear agreement |
-| Fat pointer broken. | Layout does not match | \#[repr(C)] |
-| Symbol not exported | ## [no mangle] missing | Add Properties |
-| Thread security | Not Send/Sync | Arc+Lock |
+| Problem                 | Reason                 | Solve           |
+|-------------------------|------------------------|-----------------|
+| C++ Unusual Cause Panic | Uncaptured anomaly     | catch_unwind    |
+| Memory Double Release   | Lack of ownership      | Clear agreement |
+| Fat pointer broken.     | Layout does not match  | \#[repr(C)]     |
+| Symbol not exported     | ## [no mangle] missing | Add Properties  |
+| Thread security         | Not Send/Sync          | Arc+Lock        |

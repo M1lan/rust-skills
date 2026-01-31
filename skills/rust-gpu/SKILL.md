@@ -8,7 +8,8 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we manage GPU memory and heterogeneous compute efficiently in Rust?
+Key question: How do we manage GPU memory and heterogeneous compute efficiently
+in Rust?
 
 GPU computing requires specialized memory management and synchronization.
 
@@ -16,20 +17,20 @@ GPU computing requires specialized memory management and synchronization.
 
 ## GPU memory architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
-│               GPU memory                │
+│               GPU memory                   │
 ├─────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐       │
-│  │   Global    │  │   Shared    │       │
-│  │   Memory    │  │   Memory    │       │
-│  │  (VRAM)     │  │  (SMEM)     │       │
-│  └─────────────┘  └─────────────┘       │
-│                                         │
-│  ┌─────────────┐  ┌─────────────┐       │
-│  │  Constant   │  │   Local     │       │
-│  │   Memory    │  │   Memory    │       │
-│  └─────────────┘  └─────────────┘       │
+│  ┌─────────────┐  ┌─────────────┐        │
+│  │   Global     │  │   Shared     │        │
+│  │   Memory     │  │   Memory     │        │
+│  │  (VRAM)      │  │  (SMEM)      │        │
+│  └─────────────┘  └─────────────┘        │
+│                                            │
+│  ┌─────────────┐  ┌─────────────┐        │
+│  │  Constant    │  │   Local      │        │
+│  │   Memory     │  │   Memory     │        │
+│  └─────────────┘  └─────────────┘        │
 └─────────────────────────────────────────┘
         ↓                    ↑
    CPU (via PCIe)        GPU compute units
@@ -39,13 +40,13 @@ GPU computing requires specialized memory management and synchronization.
 
 ## Memory type comparison
 
-| Memory type | Location | Latency | Size | Use |
-|---------|------|------|------|------|
-| Global | VRAM | High | Large | Input/output data |
-| Shared | SMEM | Low | Small | Intra-block communication |
-| Constant | Cache | Medium | Medium | Read-only data |
-| Local | Registers/VRAM | High | Small | Per-thread private |
-| Register | SM | Lowest | Very small | Per-thread private |
+| Memory type | Location       | Latency | Size       | Use                       |
+|-------------|----------------|---------|------------|---------------------------|
+| Global      | VRAM           | High    | Large      | Input/output data         |
+| Shared      | SMEM           | Low     | Small      | Intra-block communication |
+| Constant    | Cache          | Medium  | Medium     | Read-only data            |
+| Local       | Registers/VRAM | High    | Small      | Per-thread private        |
+| Register    | SM             | Lowest  | Very small | Per-thread private        |
 
 ---
 
@@ -243,7 +244,7 @@ assert(((uintptr_t)ptr % ALIGNMENT) == 0);
 
 ## Related skills
 
-```
+```text
 rust-gpu
     │
     ├─► rust-performance → performance optimization

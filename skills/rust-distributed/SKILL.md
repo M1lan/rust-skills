@@ -8,7 +8,8 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we balance consistency and availability in distributed systems?
+Key question: How do we balance consistency and availability in distributed
+systems?
 
 Distributed systems require CAP trade-offs.
 
@@ -18,19 +19,19 @@ Distributed systems require CAP trade-offs.
 
 ### Raft Core Concept
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
-│ Raft Cluster │
+│ Raft Cluster                                            │
 ├─────────────────────────────────────────────────────┤
-│ │
-│ ┌─────────┐ ┌─────────┐ ┌─────────┐ │
-│ │ Leader │ ◄──►│ Follower│ ◄──►│ Follower│ │
-│ │ Nodes │ │ Nodes │ │ Nodes │ │
-│ └────┬────┘ └─────────┘ └─────────┘ │
-│ │ │
-│ - Processing client requests │
-│ - Copy Log To Follower │
-│ - Managing heartbeats and elections │
+│                                                         │
+│ ┌─────────┐      ┌─────────┐      ┌─────────┐        │
+│ │ Leader   │ ◄──► │ Follower │ ◄──► │ Follower │        │
+│ │ Nodes    │      │ Nodes    │      │ Nodes   │        │
+│ └────┬────┘      └─────────┘      └─────────┘        │
+│       │                                                 │
+│ - Processing client requests                            │
+│ - Copy Log To Follower                                  │
+│ - Managing heartbeats and elections                     │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -51,11 +52,11 @@ struct RaftNode {
  log: Vec<LogEntry>,
  commit_index: usize,
  last_applied: usize,
- 
+
  // Election-related
  election_timeout: Duration,
  last_heartbeat: Instant,
- 
+
  // Cluster Configuration
  node_id: u64,
  peers: Vec<u64>,
@@ -76,11 +77,11 @@ impl RaftNode {
  fn replicate_log(&mut self, peer: u64) {
  let prev_log_index = self.get_last_log_index_for(peer);
  let prev_log_term = self.get_last_log_term_for(peer);
- 
+
  let entries: Vec<LogEntry> = self.log
  [(prev_log_index + 1)..]
  .to_vec();
- 
+
  let rpc = AppendEntriesRequest {
  term: self.current_term,
  leader_id: self.node_id,
@@ -89,7 +90,7 @@ impl RaftNode {
  entries,
  leader_commit: self.commit_index,
  };
- 
+
  self.send_append_entries(peer, rpc);
  }
 }
@@ -103,9 +104,9 @@ impl RaftNode {
  self.state = RaftState::Candidate;
  self.current_term += 1;
  self.voted_for = Some(self.node_id);
- 
+
  let mut votes = 1;
- 
+
  // Request to vote for all nodes
  for peer in &self.peers {
  let request = RequestVoteRequest {
@@ -114,7 +115,7 @@ impl RaftNode {
  last_log_index: self.log.len(),
  last_log_term: self.get_last_log_term(),
  };
- 
+
  if let Some(response) = self.send_request_vote(peer, request) {
  if response.vote_granted {
  votes += 1;
@@ -125,7 +126,7 @@ impl RaftNode {
  }
  }
  }
- 
+
  // Elections failed,Back Follower
  self.state = RaftState::Follower;
  }
@@ -156,7 +157,7 @@ enum TwoPCState {
 impl TwoPhaseCommitCoordinator {
  pub fn start_transaction(&mut self) {
  self.state = TwoPCState::WaitingPrepare;
- 
+
  // Phase I:Send prepare
  for participant in &self.participants {
  participant.send(PrepareMessage {
@@ -164,13 +165,13 @@ impl TwoPhaseCommitCoordinator {
  });
  }
  }
- 
+
  pub fn handle_prepare_response(&mut self, response: PrepareResponse) {
  if response.vote == Vote::Abort {
  self.abort();
  } else if self.all_prepared() {
  self.state = TwoPCState::WaitingCommit;
- 
+
  // Phase II:Send commit
  for participant in &self.participants {
  participant.send(CommitMessage {
@@ -201,7 +202,7 @@ impl Participant {
  pub fn handle_prepare(&mut self, msg: PrepareMessage) {
  // Do Local Operations
  let result = self.transaction_manager.execute();
- 
+
  match result {
  Ok(_) => {
  self.state = ParticipantState::Prepared;
@@ -223,11 +224,11 @@ impl Participant {
 
 ### 2PC Problems and Solutions
 
-| Problem | Reason | Solutions |
-|-----|------|---------|
-| Blocking | Coordinator failure | Timeouts, backup coordinator |
-| Single point failure | Reliance on coordinator | Distributed coordinator (etcd/ZooKeeper) |
-| Performance | Multiple network round trips | Batch submission, tuned timeouts |
+| Problem              | Reason                       | Solutions                                |
+|----------------------|------------------------------|------------------------------------------|
+| Blocking             | Coordinator failure          | Timeouts, backup coordinator             |
+| Single point failure | Reliance on coordinator      | Distributed coordinator (etcd/ZooKeeper) |
+| Performance          | Multiple network round trips | Batch submission, tuned timeouts         |
 
 ---
 
@@ -269,7 +270,7 @@ struct SnowflakeGenerator {
 impl SnowflakeGenerator {
  pub fn generate(&mut self) -> u64 {
  let timestamp = current_timestamp();
- 
+
  if timestamp == self.last_timestamp {
  self.sequence = (self.sequence + 1) & 0xFFF; // 12bit
  if self.sequence == 0 {
@@ -279,9 +280,9 @@ impl SnowflakeGenerator {
  } else {
  self.sequence = 0;
  }
- 
+
  self.last_timestamp = timestamp;
- 
+
  (timestamp << 22) // 41-bit timestamp
  | (self.datacenter_id << 17) // 5-bit datacenter
  | (self.worker_id << 12) // 5-bit worker node
@@ -312,19 +313,19 @@ impl DistributedLock {
  owner.to_string(),
  Some(PutOptions::new().with_ttl(ttl))
  ).await?;
- 
+
  // If no previous key, lock acquired.
  Ok(response.prev_key().is_none())
  }
- 
+
  pub async fn unlock(&self, owner: u64) -> Result<(), LockError> {
  // Only by the lockholder.
  let response = etcd_client.get(format!("/lock/{}", self.key)).await?;
- 
+
  if response.value() == owner.to_string() {
  etcd_client.delete(format!("/lock/{}", self.key)).await?;
  }
- 
+
  Ok(())
  }
 }
@@ -338,7 +339,7 @@ impl DistributedLock {
 // Event Trace Mode
 trait EventSourced {
  type Event;
- 
+
  fn apply(&mut self, event: Self::Event);
  fn snapshot(&self) -> Self;
 }
@@ -357,13 +358,13 @@ impl Aggregate {
  state: AggregateState::Init,
  }
  }
- 
+
  pub fn apply_event(&mut self, event: Event) {
  self.state.transition(&event);
  self.events.push(event);
  self.version += 1;
  }
- 
+
  pub fn snapshot(&self) -> EventSourcedSnapshot {
  EventSourcedSnapshot {
  version: self.version,
@@ -377,18 +378,18 @@ impl Aggregate {
 
 ## Common problems
 
-| Problem | Reason | Solve |
-|-----|------|-----|
-| Brain fracture. | Network partition | Quorum, tenure mechanism |
-| Live lock. | Elections overtime conflict | Random timeout |
-| Data inconsistencies | Also Write | Conflict resolution strategies |
-| Performance bottlenecks | Single-writer bottleneck | Sharding, replication |
+| Problem                 | Reason                      | Solve                          |
+|-------------------------|-----------------------------|--------------------------------|
+| Brain fracture.         | Network partition           | Quorum, tenure mechanism       |
+| Live lock.              | Elections overtime conflict | Random timeout                 |
+| Data inconsistencies    | Also Write                  | Conflict resolution strategies |
+| Performance bottlenecks | Single-writer bottleneck    | Sharding, replication          |
 
 ---
 
 ## Links to other skills
 
-```
+```text
 rust-distributed
  │
  ├─► rust-concurrency → Co-control

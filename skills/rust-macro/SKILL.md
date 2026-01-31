@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we reduce repetition? When to use macros vs generics?
+Key question: How do we reduce repetition? When to use macros vs generics?
 
 Macros generate code at compile time; generics provide type abstraction.
 
@@ -16,13 +16,13 @@ Macros generate code at compile time; generics provide type abstraction.
 
 ## Macros vs generics
 
-| Dimension | Macros | Generics |
-|-----|-----|-----|
-| Flexibility | Code transformation | Type abstraction |
-| Compile cost | Higher | Lower |
-| Error messages | Can be harder to read | Usually clearer |
-| Debug | Debug macro extension code | Direct debug |
-| Use case | Reduce boilerplate | Shared algorithms |
+| Dimension      | Macros                     | Generics          |
+|----------------|----------------------------|-------------------|
+| Flexibility    | Code transformation        | Type abstraction  |
+| Compile cost   | Higher                     | Lower             |
+| Error messages | Can be harder to read      | Usually clearer   |
+| Debug          | Debug macro extension code | Direct debug      |
+| Use case       | Reduce boilerplate         | Shared algorithms |
 
 ---
 
@@ -46,14 +46,14 @@ macro_rules! my_vec {
 
 ### Repetition patterns
 
-| Tag | Meaning |
-|-----|------|
-| `$()` | Match zero or more |
-| `$($x),*` | Comma-separated |
-| `$($x),+` | At least one |
-| `$x:ty` | Type match |
-| `$x:expr` | Expression match |
-| `$x:pat` | Pattern match |
+| Tag       | Meaning            |
+|-----------|--------------------|
+| `$()`     | Match zero or more |
+| `$($x),*` | Comma-separated    |
+| `$($x),+` | At least one       |
+| `$x:ty`   | Type match         |
+| `$x:expr` | Expression match   |
+| `$x:pat`  | Pattern match      |
 
 ---
 
@@ -67,7 +67,7 @@ use proc_macro::TokenStream;
 pub fn my_derive(input: TokenStream) -> TokenStream {
  let input = syn::parse_macro_input!(input as syn::DeriveInput);
  let name = &input.ident;
- 
+
  let expanded = quote::quote! {
  impl MyDerive for #name {
  fn my_method(&self) -> String {
@@ -75,7 +75,7 @@ pub fn my_derive(input: TokenStream) -> TokenStream {
  }
  }
  };
- 
+
  expanded.into()
 }
 ```
@@ -117,21 +117,21 @@ cargo expand --test test_name
 
 ## Best practices
 
-| Approach | Reason |
-|-----|------|
-| Prefer generics first | Safer, easier to debug |
-| Keep macros simple | Complex macros are hard to maintain |
-| Document macros | Users need to understand behavior |
-| Test expansion results | Ensure correctness |
-| Debug with `cargo expand` | Visualize expansion |
+| Approach                  | Reason                              |
+|---------------------------|-------------------------------------|
+| Prefer generics first     | Safer, easier to debug              |
+| Keep macros simple        | Complex macros are hard to maintain |
+| Document macros           | Users need to understand behavior   |
+| Test expansion results    | Ensure correctness                  |
+| Debug with `cargo expand` | Visualize expansion                 |
 
 ---
 
 ## Common crates
 
-| crate | Use |
-|-------|------|
-| `syn` | Parse Rust code |
-| `quote` | Generate Rust code |
-| `proc-macro2` | Token processing |
+| crate         | Use                  |
+|---------------|----------------------|
+| `syn`         | Parse Rust code      |
+| `quote`       | Generate Rust code   |
+| `proc-macro2` | Token processing     |
 | `derive-more` | Common derive macros |

@@ -63,10 +63,10 @@ use thiserror::Error;
 pub enum ParseError {
  #[error("invalid format: {0}")]
  InvalidFormat(String),
- 
+
  #[error("missing field: {0}")]
  MissingField(&'static str),
- 
+
  #[error("IO error: {source}")]
  Io {
  #[from]
@@ -126,12 +126,12 @@ let _ = some_fallible_function();
 
 ## When to panic
 
-| Scenario | Example | Rationale |
-|-----|------|-----|
-| Invariant violation | Profile validation failed | Program cannot safely continue |
-| Initialization check | `EXPECTED_ENV.is_set()` | Configuration must be valid |
-| Test assertions | `assert_eq!` | Verify assumptions |
-| Unrecoverable state | Connection unexpectedly disconnected | Prefer crashing over corruption |
+| Scenario             | Example                              | Rationale                       |
+|----------------------|--------------------------------------|---------------------------------|
+| Invariant violation  | Profile validation failed            | Program cannot safely continue  |
+| Initialization check | `EXPECTED_ENV.is_set()`              | Configuration must be valid     |
+| Test assertions      | `assert_eq!`                         | Verify assumptions              |
+| Unrecoverable state  | Connection unexpectedly disconnected | Prefer crashing over corruption |
 
 ```rust
 // ✅ Accepted: initialization check
@@ -149,22 +149,22 @@ let num: i32 = input.parse().unwrap();
 
 ## Anti-patterns
 
-| Anti-pattern | Problem | Better |
-|-------|------|---------|
-| `.unwrap()` everywhere | Panics in production | `?` or `context()` |
-| `Box<dyn Error>` everywhere | Weak diagnostics | Use a named error type |
-| Silently ignore errors | Bugs are hidden | Handle or propagate |
-| Too many variants | Overdesigned | Simplify the error model |
-| Panic for control flow | Misuse of panic | Use normal control flow |
+| Anti-pattern                | Problem              | Better                   |
+|-----------------------------|----------------------|--------------------------|
+| `.unwrap()` everywhere      | Panics in production | `?` or `context()`       |
+| `Box<dyn Error>` everywhere | Weak diagnostics     | Use a named error type   |
+| Silently ignore errors      | Bugs are hidden      | Handle or propagate      |
+| Too many variants           | Overdesigned         | Simplify the error model |
+| Panic for control flow      | Misuse of panic      | Use normal control flow  |
 
 ---
 
 ## Quick Reference
 
-| Scenario | Choice | Tools |
-|-----|------|-----|
-| Library returns custom error | `Result<T, Enum>` | thiserror |
-| Application quick development | `Result<T, anyhow::Error>` | anyhow |
-| Absence is normal | `Option<T>` | `None` / `Some(x)` |
-| Expected panic | `panic!` / `assert!` | Only for invariants |
-| Error conversion | `.map_err()` / `.with_context()` | Add context |
+| Scenario                      | Choice                           | Tools               |
+|-------------------------------|----------------------------------|---------------------|
+| Library returns custom error  | `Result<T, Enum>`                | thiserror           |
+| Application quick development | `Result<T, anyhow::Error>`       | anyhow              |
+| Absence is normal             | `Option<T>`                      | `None` / `Some(x)`  |
+| Expected panic                | `panic!` / `assert!`             | Only for invariants |
+| Error conversion              | `.map_err()` / `.with_context()` | Add context         |

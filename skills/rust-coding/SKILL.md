@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** What does idiomatic Rust look like?
+Key question: What does idiomatic Rust look like?
 
 Follow community conventions to keep code readable and maintainable.
 
@@ -16,13 +16,13 @@ Follow community conventions to keep code readable and maintainable.
 
 ## Naming (Rust-specific)
 
-| Rule | Correct | Incorrect |
-|----------------------|----------------------------------------------|-------------------------|
-| Avoid `get_` for simple accessors | `fn name(&self)` | `fn get_name(&self)` |
-| Iterator naming | `iter()` / `iter_mut()` / `into_iter()` | `get_iter()` |
-| Conversion naming | `as_` (cheap), `to_` (expensive), `into_` (ownership) | Mixed prefixes |
-| `static` names are SCREAMING_SNAKE_CASE | `static CONFIG: Config` | `static config: Config` |
-| `const` names are SCREAMING_SNAKE_CASE | `const BUFFER_SIZE: usize = 1024` | lowercase |
+| Rule                                    | Correct                                               | Incorrect               |
+|-----------------------------------------|-------------------------------------------------------|-------------------------|
+| Avoid `get_` for simple accessors       | `fn name(&self)`                                      | `fn get_name(&self)`    |
+| Iterator naming                         | `iter()` / `iter_mut()` / `into_iter()`               | `get_iter()`            |
+| Conversion naming                       | `as_` (cheap), `to_` (expensive), `into_` (ownership) | Mixed prefixes          |
+| `static` names are SCREAMING_SNAKE_CASE | `static CONFIG: Config`                               | `static config: Config` |
+| `const` names are SCREAMING_SNAKE_CASE  | `const BUFFER_SIZE: usize = 1024`                     | lowercase               |
 
 ### Common Naming
 
@@ -44,31 +44,31 @@ static CONFIG:once_cell::sync::Lazy<Config> = ...
 
 ## Data types
 
-| Rule | Notes | Example |
-|---------------|----------------|---------------------------------------------------|
-| Use newtype | Field syntax | `struct Email(String)` |
-| Use slice patterns | Pattern match | `if let [first, .., last] = slice` |
-| Pre-allocate | Avoid reallocations | `Vec::with_capacity()`, `String::with_capacity()` |
-| Avoid Vec for fixed size | Use arrays | `let arr: [u8; 256]` |
+| Rule                     | Notes               | Example                                           |
+|--------------------------|---------------------|---------------------------------------------------|
+| Use newtype              | Field syntax        | `struct Email(String)`                            |
+| Use slice patterns       | Pattern match       | `if let [first, .., last] = slice`                |
+| Pre-allocate             | Avoid reallocations | `Vec::with_capacity()`, `String::with_capacity()` |
+| Avoid Vec for fixed size | Use arrays          | `let arr: [u8; 256]`                              |
 
 ### String
 
-| Rule | Notes |
-|-------------------------|------------------------------|
-| ASCII data → `bytes()` | `s.bytes()` is faster than `s.chars()` |
-| Use `Cow<str>` when mutating | Borrowed or owned |
-| Prefer `format!` over `+` | Clearer and often faster |
-| Avoid repeated `contains()` | Can be O(n*m) |
+| Rule                         | Notes                                  |
+|------------------------------|----------------------------------------|
+| ASCII data → `bytes()`       | `s.bytes()` is faster than `s.chars()` |
+| Use `Cow<str>` when mutating | Borrowed or owned                      |
+| Prefer `format!` over `+`    | Clearer and often faster               |
+| Avoid repeated `contains()`  | Can be O(n*m)                          |
 
 ---
 
 ## Error handling
 
-| Rule | Notes |
-|----------------------------|------------------|
-| Propagate with `?` | No need for `try!()` |
-| Prefer `expect()` over `unwrap()` | When a message helps |
-| Use `assert!` for invariants | Function entry checks |
+| Rule                              | Notes                 |
+|-----------------------------------|-----------------------|
+| Propagate with `?`                | No need for `try!()`  |
+| Prefer `expect()` over `unwrap()` | When a message helps  |
+| Use `assert!` for invariants      | Function entry checks |
 
 ```rust
 // ✅ Good error management.
@@ -88,52 +88,52 @@ fn read_config() -> Config {
 
 ## Memory and lifetimes
 
-| Rule | Notes |
-|---------------------------|--------------------------|
-| Use descriptive lifetimes | `'src`, `'ctx` instead of `'a` |
-| Prefer `try_borrow` for `RefCell` | Avoid panic |
-| Use shadowing for conversions | `let x = x.parse()?` |
+| Rule                              | Notes                          |
+|-----------------------------------|--------------------------------|
+| Use descriptive lifetimes         | `'src`, `'ctx` instead of `'a` |
+| Prefer `try_borrow` for `RefCell` | Avoid panic                    |
+| Use shadowing for conversions     | `let x = x.parse()?`           |
 
 ---
 
 ## Concurrency rules
 
-| Rule | Notes |
-|------------------|--------------------------------|
-| Define lock order | Avoid deadlocks |
-| Use atomics for simple flags | `AtomicBool` instead of `Mutex<bool>` |
-| Choose memory order carefully | Relaxed/Acquire/Release/SeqCst |
+| Rule                          | Notes                                 |
+|-------------------------------|---------------------------------------|
+| Define lock order             | Avoid deadlocks                       |
+| Use atomics for simple flags  | `AtomicBool` instead of `Mutex<bool>` |
+| Choose memory order carefully | Relaxed/Acquire/Release/SeqCst        |
 
 ---
 
 ## Async code
 
-| Rule | Notes |
-|---------------------|-------------------|
-| CPU-bound → use threads | Async is best for I/O |
-| Don't hold locks across await | Use scoped guards |
+| Rule                          | Notes                 |
+|-------------------------------|-----------------------|
+| CPU-bound → use threads       | Async is best for I/O |
+| Don't hold locks across await | Use scoped guards     |
 
 ---
 
 ## Macros
 
-| Rule | Notes |
-|--------------------|-----------------|
-| Avoid macros unless they help | Prefer functions or generics |
-| Macro input should read like Rust | Prioritize readability |
+| Rule                              | Notes                        |
+|-----------------------------------|------------------------------|
+| Avoid macros unless they help     | Prefer functions or generics |
+| Macro input should read like Rust | Prioritize readability       |
 
 ---
 
 ## Prefer modern alternatives
 
-| Abandon | Recommendations | Version |
-|-------------------------|-----------------------|------|
-| `lazy_static!` | `std::sync::OnceLock` | 1.70 |
-| `once_cell::Lazy` | `std::sync::LazyLock` | 1.80 |
-| `std::sync::mpsc` | `crossbeam::channel` | - |
-| `std::sync::Mutex` | `parking_lot::Mutex` | - |
-| `failure`/`error-chain` | `thiserror`/`anyhow` | - |
-| `try!()` | `?` operator | 2018 |
+| Abandon                 | Recommendations       | Version |
+|-------------------------|-----------------------|---------|
+| `lazy_static!`          | `std::sync::OnceLock` | 1.70    |
+| `once_cell::Lazy`       | `std::sync::LazyLock` | 1.80    |
+| `std::sync::mpsc`       | `crossbeam::channel`  | -       |
+| `std::sync::Mutex`      | `parking_lot::Mutex`  | -       |
+| `failure`/`error-chain` | `thiserror`/`anyhow`  | -       |
+| `try!()`                | `?` operator          | 2018    |
 
 ---
 
@@ -154,13 +154,13 @@ pedantic = "warn"
 
 ### Common Clippy Rules
 
-| Lint | Annotations |
-|----------------------------|----------------|
-| `clippy::all` | Enable all warnings |
-| `clippy::pedantic` | More stringent checks |
-| `clippy::unwrap_used` | Avoid unwrap |
-| `clippy::expect_used` | Priority |
-| `clippy::clone_on_ref_ptr` | Avoid clone Arc |
+| Lint                       | Annotations           |
+|----------------------------|-----------------------|
+| `clippy::all`              | Enable all warnings   |
+| `clippy::pedantic`         | More stringent checks |
+| `clippy::unwrap_used`      | Avoid unwrap          |
+| `clippy::expect_used`      | Priority              |
+| `clippy::clone_on_ref_ptr` | Avoid clone Arc       |
 
 ---
 
@@ -215,7 +215,7 @@ pub fn new(name: &str) -> Self { ... }
 
 ## Quick Reference
 
-```
+```text
 Name: snake_case (fn/var), CamelCase (type), SCREAMING_CASE (const)
 Format: rustfmt (just use it)
 Document: /// for public items, //! for module docs

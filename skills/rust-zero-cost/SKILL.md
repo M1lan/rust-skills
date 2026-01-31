@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** Do you want static or dynamic dispatch?
+Key question: Do you want static or dynamic dispatch?
 
 Selecting the right abstract layer directly affects performance.
 
@@ -16,13 +16,13 @@ Selecting the right abstract layer directly affects performance.
 
 ## Generics vs trait objects
 
-| Feature | Generics (static dispatch) | Trait object (dynamic dispatch) |
-|-----|----------------------|--------------------------------|
-| Performance | Zero cost | vtable call overhead |
-| Code size | Can grow | Smaller |
-| Compile time | Longer | Shorter |
-| Flexibility | Types known at compile time | Runtime selection |
-| Heterogeneous collections | Not supported | `Vec<Box<dyn Trait>>` |
+| Feature                   | Generics (static dispatch)  | Trait object (dynamic dispatch) |
+|---------------------------|-----------------------------|---------------------------------|
+| Performance               | Zero cost                   | vtable call overhead            |
+| Code size                 | Can grow                    | Smaller                         |
+| Compile time              | Longer                      | Shorter                         |
+| Flexibility               | Types known at compile time | Runtime selection               |
+| Heterogeneous collections | Not supported               | `Vec<Box<dyn Trait>>`           |
 
 ---
 
@@ -122,18 +122,18 @@ fn process(item: &dyn Trait) {
 
 ## Common Errors
 
-| Error | Reason | Fix |
-|-----|------|-----|
-| E0277 | Missing trait bound | Add `T: Trait` |
-| E0038 | Trait object not safe | Check object safety rules |
-| E0308 | Type mismatch | Unify types or use generics |
-| E0599 | Impl not found | Implement trait or check bounds |
+| Error | Reason                | Fix                             |
+|-------|-----------------------|---------------------------------|
+| E0277 | Missing trait bound   | Add `T: Trait`                  |
+| E0038 | Trait object not safe | Check object safety rules       |
+| E0308 | Type mismatch         | Unify types or use generics     |
+| E0599 | Impl not found        | Implement trait or check bounds |
 
 ---
 
 ## Optimization strategy
 
-1. **Hot paths use generics** - eliminate dynamic dispatch overhead
-2. **Plugin systems use dyn** - flexibility first
-3. **Small collections use generics** - avoid Box allocations
-4. **Large collections use dyn** - reduce code bloat
+1. Hot paths use generics - eliminate dynamic dispatch overhead
+2. Plugin systems use dyn - flexibility first
+3. Small collections use generics - avoid Box allocations
+4. Large collections use dyn - reduce code bloat

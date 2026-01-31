@@ -8,7 +8,8 @@ globs: ["**/*.rs", "**/Cargo.toml"]
 
 ## Core issues
 
-**Key question:** How do we program in resource-constrained environments without the standard library?
+Key question: How do we program in resource-constrained environments without
+the standard library?
 
 no_std is not a subset of Rust; it is a different programming mode.
 
@@ -35,11 +36,11 @@ static ALLOC: some_allocator::Allocator = some_allocator::Allocator;
 
 ### Available modules
 
-| Module | Use |
-|-----|------|
-| `core` | Core language types |
-| `alloc` | Heap allocation (allocator required) |
-| `compiler_builtins` | Compiler intrinsics |
+| Module              | Use                                  |
+|---------------------|--------------------------------------|
+| `core`              | Core language types                  |
+| `alloc`             | Heap allocation (allocator required) |
+| `compiler_builtins` | Compiler intrinsics                  |
 
 ---
 
@@ -62,13 +63,13 @@ fn blink_led<L: OutputPin>(mut led: L) -> ! {
 
 ### Common traits
 
-| trait | Operation |
-|-------|------|
+| trait       | Operation          |
+|-------------|--------------------|
 | `OutputPin` | Set high/low level |
-| `InputPin` | Read pin state |
-| `SpiBus` | SPI communication |
-| `I2c` | I2C communication |
-| `Serial` | Serial interface |
+| `InputPin`  | Read pin state     |
+| `SpiBus`    | SPI communication  |
+| `I2c`       | I2C communication  |
+| `Serial`    | Serial interface   |
 
 ---
 
@@ -156,25 +157,25 @@ mod gpioa {
 
 ## Common problems
 
-| Problem | Cause | Fix |
-|-----|------|-----|
-| panic loop | No panic handler | Implement `#[panic_handler]` |
-| Stack overflow | Nested interrupts or large locals | Increase stack, reduce locals |
-| Memory corruption | Raw pointer misuse | Use safe abstractions |
-| Program doesn't run | Linker script issues | Check startup code |
-| Peripherals unresponsive | Clock not enabled | Configure RCC first |
+| Problem                  | Cause                             | Fix                           |
+|--------------------------|-----------------------------------|-------------------------------|
+| panic loop               | No panic handler                  | Implement `#[panic_handler]`  |
+| Stack overflow           | Nested interrupts or large locals | Increase stack, reduce locals |
+| Memory corruption        | Raw pointer misuse                | Use safe abstractions         |
+| Program doesn't run      | Linker script issues              | Check startup code            |
+| Peripherals unresponsive | Clock not enabled                 | Configure RCC first           |
 
 ---
 
 ## Resource-constrained tips
 
-| Tip | Effect |
-|-----|------|
-| `opt-level = "z"` | Minimize size |
-| `lto = true` | Link-time optimization |
-| `panic = "abort"` | Remove unwinding |
-| `codegen-units = 1` | Better optimization |
-| Avoid `alloc` | Use stack or static arrays |
+| Tip                 | Effect                     |
+|---------------------|----------------------------|
+| `opt-level = "z"`   | Minimize size              |
+| `lto = true`        | Link-time optimization     |
+| `panic = "abort"`   | Remove unwinding           |
+| `codegen-units = 1` | Better optimization        |
+| Avoid `alloc`       | Use stack or static arrays |
 
 ---
 
@@ -422,12 +423,12 @@ fn get_isa_extensions() -> String {
 
 ## RISC-V performance optimization
 
-| Optimization | Method |
-|-------|------|
-| Memory access | Use unaligned access instructions (if supported) |
-| Atomics | Use A extension instructions |
-| Multiplication/division | Use M extension instructions |
-| Vector ops | Use V extension (RV64V) |
-| Compressed instructions | Use C extension to reduce code size |
+| Optimization            | Method                                           |
+|-------------------------|--------------------------------------------------|
+| Memory access           | Use unaligned access instructions (if supported) |
+| Atomics                 | Use A extension instructions                     |
+| Multiplication/division | Use M extension instructions                     |
+| Vector ops              | Use V extension (RV64V)                          |
+| Compressed instructions | Use C extension to reduce code size              |
 
 ---

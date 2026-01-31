@@ -8,7 +8,7 @@ globs: ["**/*.toml", "**/Cargo.lock"]
 
 ## Core issues
 
-**Key question:** How do we keep up with Rust's pace?
+Key question: How do we keep up with Rust's pace?
 
 Rust publishes a new release every six weeks. The ecosystem moves quickly.
 
@@ -31,11 +31,11 @@ rustup changelog stable
 
 ### When should you update?
 
-| Scenario | Recommendation |
-|-----|------|
-| New projects | Use the latest stable |
-| Production | Update on the 6-week cycle (after testing) |
-| Libraries | Follow an MSRV policy |
+| Scenario     | Recommendation                             |
+|--------------|--------------------------------------------|
+| New projects | Use the latest stable                      |
+| Production   | Update on the 6-week cycle (after testing) |
+| Libraries    | Follow an MSRV policy                      |
 
 ### MSRV (Minimum Supported Rust Version)
 
@@ -54,16 +54,16 @@ serde = { version = "1.0", default-features = false }
 
 ### 2024 Edition Important Features
 
-| Feature | Stable version | Practicality |
-|-----|---------|-------|
-| `gen blocks` | nightly | ⭐ Experimental |
-| `async drop` | nightly | ⭐ Experimental |
-| `inline const` | 1.79+ | ✅ Stable |
-| `never type` improvements | 1.82+ | ⭐⭐⭐ Common |
+| Feature                   | Stable version | Practicality    |
+|---------------------------|----------------|-----------------|
+| `gen blocks`              | nightly        | ⭐ Experimental |
+| `async drop`              | nightly        | ⭐ Experimental |
+| `inline const`            | 1.79+          | ✅ Stable       |
+| `never type` improvements | 1.82+          | ⭐⭐⭐ Common   |
 
 ### Learning progression
 
-```
+```text
 Foundation → Ownership, borrowing, lifetimes
  ↓
 Intermediate → Trait objects, enums, error handling
@@ -81,21 +81,21 @@ Expert → macros, type system, API design
 
 ### Official channels
 
-| Channel | Contents | Frequency |
-|-----|------|-----|
-| [This Week in Rust](https://this-week-in-rust.org/) | Weekly news, RFCs, blogs | Weekly |
-| [Rust Blog](https://blog.rust-lang.org/) | Major announcements, deep dives | Occasional |
-| [Rust RFCs](https://github.com/rust-lang/rfcs) | Design discussions | Ongoing |
-| [Release Notes](https://github.com/rust-lang/rust/blob/master/RELEASES.md) | Version changes | Every 6 weeks |
+| Channel                                                                    | Contents                        | Frequency     |
+|----------------------------------------------------------------------------|---------------------------------|---------------|
+| [This Week in Rust](https://this-week-in-rust.org/)                        | Weekly news, RFCs, blogs        | Weekly        |
+| [Rust Blog](https://blog.rust-lang.org/)                                   | Major announcements, deep dives | Occasional    |
+| [Rust RFCs](https://github.com/rust-lang/rfcs)                             | Design discussions              | Ongoing       |
+| [Release Notes](https://github.com/rust-lang/rust/blob/master/RELEASES.md) | Version changes                 | Every 6 weeks |
 
 ### Community resources
 
-| Resources | Contents |
-|-----|------|
-| [docs.rs](https://docs.rs/) | API docs search |
-| [crates.io](https://crates.io/) | Package registry |
-| [lib.rs](https://lib.rs/) | Curated crate discovery |
-| [Rust Analyzer](https://rust-analyzer.github.io/) | IDE plugin |
+| Resources                                         | Contents                |
+|---------------------------------------------------|-------------------------|
+| [docs.rs](https://docs.rs/)                       | API docs search         |
+| [crates.io](https://crates.io/)                   | Package registry        |
+| [lib.rs](https://lib.rs/)                         | Curated crate discovery |
+| [Rust Analyzer](https://rust-analyzer.github.io/) | IDE plugin              |
 
 ---
 

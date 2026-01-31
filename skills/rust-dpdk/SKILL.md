@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we process millions of packets per second (PPS)?
+Key question: How do we process millions of packets per second (PPS)?
 
 Traditional kernel network stacks incur heavy context switching and memory-copy overhead.
 
@@ -16,14 +16,14 @@ Traditional kernel network stacks incur heavy context switching and memory-copy 
 
 ## DPDK vs kernel network stack
 
-| Feature | Kernel network stack | DPDK |
-|-----|----------|------|
-| Context switching | Switch per packet | Poll mode, no switches |
-| Memory copies | Multiple copies | Zero-copy |
-| Interrupts | Frequent interrupts | Poll mode driver |
-| Latency | Higher | Microseconds |
-| Throughput | Tens of thousands PPS | Millions PPS |
-| CPU utilization | Lower but with overhead | High but efficient |
+| Feature           | Kernel network stack    | DPDK                   |
+|-------------------|-------------------------|------------------------|
+| Context switching | Switch per packet       | Poll mode, no switches |
+| Memory copies     | Multiple copies         | Zero-copy              |
+| Interrupts        | Frequent interrupts     | Poll mode driver       |
+| Latency           | Higher                  | Microseconds           |
+| Throughput        | Tens of thousands PPS   | Millions PPS           |
+| CPU utilization   | Lower but with overhead | High but efficient     |
 
 ---
 
@@ -305,19 +305,19 @@ fn allocate_cores_for_queues(num_queues: u16) {
 
 ## Performance optimization
 
-| Optimization | Method |
-|-------|------|
-| Memory alignment | Cache-line alignment (64 bytes) |
-| Lock-free queues | Use SPSC queues |
-| Batching | Batch send/receive to reduce syscalls |
-| CPU affinity | Core pinning to reduce context switches |
-| Hugepages | 2MB/1GB pages reduce TLB misses |
+| Optimization     | Method                                  |
+|------------------|-----------------------------------------|
+| Memory alignment | Cache-line alignment (64 bytes)         |
+| Lock-free queues | Use SPSC queues                         |
+| Batching         | Batch send/receive to reduce syscalls   |
+| CPU affinity     | Core pinning to reduce context switches |
+| Hugepages        | 2MB/1GB pages reduce TLB misses         |
 
 ---
 
 ## Related skills
 
-```
+```text
 rust-dpdk
     │
     ├─► rust-performance → performance optimization

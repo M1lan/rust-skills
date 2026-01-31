@@ -8,7 +8,8 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How do we ensure pointers stay valid in async or self-referential structures?
+Key question: How do we ensure pointers stay valid in async or self-referential
+structures?
 
 Pin ensures that certain values do not move in memory.
 
@@ -28,7 +29,7 @@ struct MyFuture {
 
 impl Future for MyFuture {
  type Output = ();
- 
+
  fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
  let this = self.get_mut();
  // Safe use this.state
@@ -52,12 +53,12 @@ struct Node {
 
 ## Common Pin forms
 
-| Form | Scenario | Example |
-|-----|------|-----|
-| `Pin<&T>` | Shared borrow, value immovable | `Pin<&Foo>` |
-| `Pin<&mut T>` | Mutable borrow | `Pin<&mut Foo>` |
-| `Pin<Box<T>>` | Heap-allocated value | `Pin<Box<Foo>>` |
-| `Pin<Arc<T>>` | Shared heap allocation | `Pin<Arc<Foo>>` |
+| Form          | Scenario                       | Example         |
+|---------------|--------------------------------|-----------------|
+| `Pin<&T>`     | Shared borrow, value immovable | `Pin<&Foo>`     |
+| `Pin<&mut T>` | Mutable borrow                 | `Pin<&mut Foo>` |
+| `Pin<Box<T>>` | Heap-allocated value           | `Pin<Box<Foo>>` |
+| `Pin<Arc<T>>` | Shared heap allocation         | `Pin<Arc<Foo>>` |
 
 ---
 
@@ -106,11 +107,11 @@ impl<T> Wrapper<T> where T: Unpin {
 
 ## Common errors
 
-| Error | Reason | Solve |
-|-----|-----|-----|
-| Forgetting to pin | Future may move | Use Pin/Box::pin |
-| Unsafe projection misuse | Violates pinning rules | Use `pin_project` or correct unsafe |
-| Misusing Unpin | Pointers become invalid across await | Understand future state layout |
+| Error                    | Reason                               | Solve                               |
+|--------------------------|--------------------------------------|-------------------------------------|
+| Forgetting to pin        | Future may move                      | Use Pin/Box::pin                    |
+| Unsafe projection misuse | Violates pinning rules               | Use `pin_project` or correct unsafe |
+| Misusing Unpin           | Pointers become invalid across await | Understand future state layout      |
 
 ---
 
@@ -125,11 +126,11 @@ impl<T> Wrapper<T> where T: Unpin {
 
 ## Quick check
 
-| Scenario | Need Pin? |
-|-----|-----------|
-| `async { ... }` | ✅ Yes |
-| `Box<dyn Future>` | ✅ Need |
-| Future | ✅ Need |
-| Normal Vec | ❌ No |
-| Thread locals | ❌ No |
-| No self-references | ❌ No |
+| Scenario           | Need Pin? |
+|--------------------|-----------|
+| `async { ... }`    | ✅ Yes    |
+| `Box<dyn Future>`  | ✅ Need   |
+| Future             | ✅ Need   |
+| Normal Vec         | ❌ No     |
+| Thread locals      | ❌ No     |
+| No self-references | ❌ No     |

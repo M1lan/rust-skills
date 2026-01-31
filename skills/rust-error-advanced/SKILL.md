@@ -16,18 +16,18 @@ Your error-handling strategy determines how robust the code is.
 
 ## Result vs Option vs panic
 
-| Type | When to use | Example: |
-|-----|---------|-----|
-| `Result<T, E>` | Operations expected to fail | Document reading, web requests |
-| `Option<T>` | Absence is normal | Lookups that may be empty |
-| `panic!` | Bug or invariant violation | Logic error, unrecoverable state |
-| `unreachable!()` | Impossible code path | Exhaustive match fallback |
+| Type             | When to use                 | Example:                         |
+|------------------|-----------------------------|----------------------------------|
+| `Result<T, E>`   | Operations expected to fail | Document reading, web requests   |
+| `Option<T>`      | Absence is normal           | Lookups that may be empty        |
+| `panic!`         | Bug or invariant violation  | Logic error, unrecoverable state |
+| `unreachable!()` | Impossible code path        | Exhaustive match fallback        |
 
 ---
 
 ## Error-handling decision tree
 
-```
+```text
 Was failure expected?
  │
  ├─ Yes → Is this library code?
@@ -102,24 +102,24 @@ fn complex_operation() -> Result<()> {
 
 ## Error design guidelines
 
-| Scene | Recommendation |
-|-----|------|
-| Library code | thiserror with precise, typed errors |
-| Application code | anyhow for convenience + context |
-| Third-party errors | Convert via `#[from]` |
-| Need error categories | Add error variants |
-| Need error context | `context()` / `with_context()` |
+| Scene                 | Recommendation                       |
+|-----------------------|--------------------------------------|
+| Library code          | thiserror with precise, typed errors |
+| Application code      | anyhow for convenience + context     |
+| Third-party errors    | Convert via `#[from]`                |
+| Need error categories | Add error variants                   |
+| Need error context    | `context()` / `with_context()`       |
 
 ---
 
 ## Common anti-patterns
 
-| Anti-pattern | Problem | Solve |
-|-------|------|-----|
-| `unwrap()` in libraries | Panics in production | Use `?` and typed errors |
-| `Box<dyn Error>` everywhere | Weak diagnostics | Use thiserror variants |
-| Lost context | Hard to debug | Add `.context()` |
-| Too many variants | Overdesigned | Simplify or consolidate |
+| Anti-pattern                | Problem              | Solve                    |
+|-----------------------------|----------------------|--------------------------|
+| `unwrap()` in libraries     | Panics in production | Use `?` and typed errors |
+| `Box<dyn Error>` everywhere | Weak diagnostics     | Use thiserror variants   |
+| Lost context                | Hard to debug        | Add `.context()`         |
+| Too many variants           | Overdesigned         | Simplify or consolidate  |
 
 ---
 
@@ -178,9 +178,9 @@ fn middle_layer() -> Result<()> {
 
 ## Best practices
 
-1. **Library code:** use precise error types (thiserror).
-2. **Application code:** prioritize ease of use (anyhow).
-3. **Error conversion:** use `#[from]` for consistent propagation.
-4. **Add context:** `context()` / `with_context()` for diagnostics.
-5. **Preserve sources:** keep the underlying error with `#[from]`.
-6. **Panic only for bugs:** expected failures should be `Result`/`Option`.
+1. Library code: use precise error types (thiserror).
+2. Application code: prioritize ease of use (anyhow).
+3. Error conversion: use `#[from]` for consistent propagation.
+4. Add context: `context()` / `with_context()` for diagnostics.
+5. Preserve sources: keep the underlying error with `#[from]`.
+6. Panic only for bugs: expected failures should be `Result`/`Option`.

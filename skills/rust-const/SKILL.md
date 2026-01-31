@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** What can be computed at compile time?
+Key question: What can be computed at compile time?
 
 Rust's `const fn` lets you run code at compile time.
 
@@ -110,12 +110,12 @@ impl StateMachine<Initial> {
 
 ## Common patterns
 
-| Pattern | Use | Example |
-|-----|------|-----|
-| Array type | Fixed-size collection | `[T; N]` |
-| Buffer size | Avoid dynamic allocation | `const SIZE: usize = 1024` |
-| Compile-time checks | Early error detection | `assert!` in const fn |
-| Typestate | State machine | `StateMachine<S>` |
+| Pattern             | Use                      | Example                    |
+|---------------------|--------------------------|----------------------------|
+| Array type          | Fixed-size collection    | `[T; N]`                   |
+| Buffer size         | Avoid dynamic allocation | `const SIZE: usize = 1024` |
+| Compile-time checks | Early error detection    | `assert!` in const fn      |
+| Typestate           | State machine            | `StateMachine<S>`          |
 
 ---
 
@@ -146,9 +146,9 @@ fn big_array_on_heap() -> Box<[u8; 1024 * 1024]> {
 
 ## Common errors
 
-| Error | Cause | Fix |
-|-----|-----|-----|
-| Stack overflow | Large array on the stack | Use Box or Vec |
-| Array size mismatch | Wrong const generic value | Check constant values |
-| const fn not supported | Language limitation | Use runtime or nightly |
-| MaybeUninit not initialized | UB | Use `assume_init` correctly |
+| Error                       | Cause                     | Fix                         |
+|-----------------------------|---------------------------|-----------------------------|
+| Stack overflow              | Large array on the stack  | Use Box or Vec              |
+| Array size mismatch         | Wrong const generic value | Check constant values       |
+| const fn not supported      | Language limitation       | Use runtime or nightly      |
+| MaybeUninit not initialized | UB                        | Use `assume_init` correctly |

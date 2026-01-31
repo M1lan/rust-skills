@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** How can the compiler catch more errors at compile time?
+Key question: How can the compiler catch more errors at compile time?
 
 Well-designed types prevent invalid states.
 
@@ -184,21 +184,21 @@ impl DebugLogger<DebugOnly> {
 
 ## Common anti-patterns
 
-| Anti-pattern | Problem | Improvement |
-|-------|------|-----|
-| `is_valid` flag | Runtime checks | Encode state in types |
-| Too many `Option`s | Can be empty | Redesign the type |
-| Raw types everywhere | Type confusion | Newtype |
-| Runtime validation | Errors discovered late | Validate in constructors |
-| Boolean arguments | Unclear meaning | Use enums or builders |
+| Anti-pattern         | Problem                | Improvement              |
+|----------------------|------------------------|--------------------------|
+| `is_valid` flag      | Runtime checks         | Encode state in types    |
+| Too many `Option`s   | Can be empty           | Redesign the type        |
+| Raw types everywhere | Type confusion         | Newtype                  |
+| Runtime validation   | Errors discovered late | Validate in constructors |
+| Boolean arguments    | Unclear meaning        | Use enums or builders    |
 
 ---
 
 ## Validation timing
 
-| Validation type | Best timing | Example |
-|---------|---------|-----|
-| Range validation | At construction | `Email::new()` returns `Option` |
-| State transitions | Type boundary | `Connection<Connected>` |
-| Reference validity | Lifetimes | `&'a T` |
-| Thread safety | `Send + Sync` | Compiler check |
+| Validation type    | Best timing     | Example                         |
+|--------------------|-----------------|---------------------------------|
+| Range validation   | At construction | `Email::new()` returns `Option` |
+| State transitions  | Type boundary   | `Connection<Connected>`         |
+| Reference validity | Lifetimes       | `&'a T`                         |
+| Thread safety      | `Send + Sync`   | Compiler check                  |

@@ -8,7 +8,7 @@ globs: ["**/*.rs"]
 
 ## Core issues
 
-**Key question:** Why are lifetimes in async code so hard?
+Key question:# Why are lifetimes in async code so hard?
 
 Async complicates borrowing because futures can be held across await points.
 
@@ -27,7 +27,7 @@ pub struct SessionStream<'buf> {
 
 impl Stream for SessionStream<'buf> {
  type Item = Result<CachedResponse<'buf>, Status>;
- 
+
  fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
  // ❌ Returned CachedResponse<'buf> borrows from self.buf
  // But Stream::Item can be held arbitrarily long.
@@ -37,7 +37,7 @@ impl Stream for SessionStream<'buf> {
 
 ### Error message
 
-```
+```text
 error[E0700]: hidden type for `impl futures_core::Stream` captures lifetime that does not appear in bounds
 error[E0310]: the parameter type may not live long enough
 ```
@@ -65,7 +65,7 @@ impl SessionWorker {
             self.tx_snapshots.send(snapshot).await;
         }
  }
- 
+
  fn process_event(&mut self, event: Bytes) -> SnapshotResponse {
         // It can borrow internally from self.buf.
         let start = self.buf.len();
@@ -86,7 +86,7 @@ pub struct SessionStream {
 
 impl Stream for SessionStream {
  type Item = Result<SnapshotResponse, Status>;
- 
+
  fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
  // All items are owned SnapshotResponse values.
  }
@@ -122,7 +122,7 @@ fn dispatch_to_plugins(msg: BorrowedMessage<'a>) {
 ### Reason
 
 - Tokio: :spawn does not know when the mission will be completed
-- If the job holds reference,  may have expired
+- If the job holds reference, may have expired
 
 ### Solve: Event loop + actor model
 
@@ -176,7 +176,7 @@ impl MessageArena {
 
 ### Final structure
 
-```
+```text
 ┌─────────────────────────────────────┐
 │ Decode Layer │ Holds buffers
 ├─────────────────────────────────────┤
@@ -221,23 +221,23 @@ pub trait Plugin: Send + Sync {
 
 ## Common problems
 
-| Problem | Reason | Solve |
-|-----|------|-----|
-| Stream returns a borrow | Item lifetime escapes | Worker + channel |
-| tokio::spawn not 'static | Tasks may hold temporary refs | Event-loop pattern |
-| Plugin handler lifetime | Plugin holds message | Actor + index |
-| async-graphql + GAT | 'static requirement | Owned DTO |
-| tonic stream self-reference | Buffer reuse conflicts | Snapshot pattern |
+| Problem                     | Reason                        | Solve              |
+|-----------------------------|-------------------------------|--------------------|
+| Stream returns a borrow     | Item lifetime escapes         | Worker + channel   |
+| tokio::spawn not 'static    | Tasks may hold temporary refs | Event-loop pattern |
+| Plugin handler lifetime     | Plugin holds message          | Actor + index      |
+| async-graphql + GAT         | 'static requirement           | Owned DTO          |
+| tonic stream self-reference | Buffer reuse conflicts        | Snapshot pattern   |
 
 ---
 
 ## When to spawn, when to act
 
-| scene | Programme |
-|-----|-----|
-| Independent missions, possible parallel | tokio::spawn |
-| Need for collaborative movement | Event Loop |
-| Plugin System | Actor model |
-| Long-run statusful | Actor |
-| Short-term tasks | spawn |
-| We need back pressure control. | Channel + actor |
+| scene                                   | Programme       |
+|-----------------------------------------|-----------------|
+| Independent missions, possible parallel | tokio::spawn    |
+| Need for collaborative movement         | Event Loop      |
+| Plugin System                           | Actor model     |
+| Long-run statusful                      | Actor           |
+| Short-term tasks                        | spawn           |
+| We need back pressure control.          | Channel + actor |
