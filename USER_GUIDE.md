@@ -7,8 +7,8 @@
 ## Introduction
 
 Rust Skill is an AI expert skill system designed for Rust programming. It
-divides Rust knowledge into 35 sub-skills covering all areas from beginner to
-expert.
+divides Rust knowledge into **35 sub-skills** covering all areas from beginner
+to expert.
 
 Core Value: Enabling AI to invoke domain-specific expertise when answering
 Rust-related questions for more accurate responses.
@@ -17,12 +17,12 @@ Rust-related questions for more accurate responses.
 
 ## Supported AI Tools
 
-| Tool | Support | Configuration |
+| Tool           | Support        | Configuration     |
 |----------------|----------------|-------------------|
-| Cursor | Native support | MCP configuration |
-| Claude Code | Supported | MCP configuration |
-| GitHub Copilot | Limited | Manual reference |
-| Other Agents | Supported | Direct reference |
+| Cursor         | Native support | MCP configuration |
+| Claude Code    | Supported      | MCP configuration |
+| GitHub Copilot | Limited        | Manual reference  |
+| Other Agents   | Supported      | Direct reference  |
 
 ---
 
@@ -110,18 +110,18 @@ especially `rust-ownership/SKILL.md` and `rust-concurrency/SKILL.md`.
 
 Include trigger words in problem description, AI will automatically match:
 
-| Problem Example | Triggered Skill |
+| Problem Example                                             | Triggered Skill  |
 |-------------------------------------------------------------|------------------|
-| "Can I use the original variable after ownership transfer?" | rust-ownership |
-| "What's the difference between Cell and RefCell?" | rust-mutability |
-| "How to choose between Mutex and RwLock?" | rust-concurrency |
-| "How to handle Result and Option?" | rust-error |
-| "How to implement async Stream?" | rust-async |
-| "What should I note in unsafe code?" | rust-unsafe |
-| "How to call C++ libraries?" | rust-ffi |
-| "How to develop in no_std environment?" | rust-embedded |
-| "How to design Redis caching?" | rust-cache |
-| "How to implement JWT authentication?" | rust-auth |
+| "Can I use the original variable after ownership transfer?" | rust-ownership   |
+| "What's the difference between Cell and RefCell?"           | rust-mutability  |
+| "How to choose between Mutex and RwLock?"                   | rust-concurrency |
+| "How to handle Result and Option?"                          | rust-error       |
+| "How to implement async Stream?"                            | rust-async       |
+| "What should I note in unsafe code?"                        | rust-unsafe      |
+| "How to call C++ libraries?"                                | rust-ffi         |
+| "How to develop in no_std environment?"                     | rust-embedded    |
+| "How to design Redis caching?"                              | rust-cache       |
+| "How to implement JWT authentication?"                      | rust-auth        |
 
 ### Manual Specification
 
@@ -138,33 +138,33 @@ Please use rust-ownership skill to answer:
 
 ### Core Skills (Daily Use)
 
-| Skill | Description | Use Case |
+| Skill            | Description          | Use Case                             |
 |------------------|----------------------|--------------------------------------|
-| rust-ownership | Ownership & lifetime | Borrow checker errors, memory safety |
-| rust-mutability | Interior mutability | Cell, RefCell selection |
-| rust-concurrency | Concurrency & async | Threads, channels, tokio |
-| rust-error | Error handling | Result, Option handling |
+| rust-ownership   | Ownership & lifetime | Borrow checker errors, memory safety |
+| rust-mutability  | Interior mutability  | Cell, RefCell selection              |
+| rust-concurrency | Concurrency & async  | Threads, channels, tokio             |
+| rust-error       | Error handling       | Result, Option handling              |
 
 ### Advanced Skills (Deep Understanding)
 
-| Skill | Description | Use Case |
+| Skill            | Description                  | Use Case                     |
 |------------------|------------------------------|------------------------------|
-| rust-unsafe | Unsafe code | FFI, raw pointers |
-| rust-performance | Performance optimization | Benchmarks, SIMD |
-| rust-web | Web development | axum, API design |
-| rust-cache | Caching management | Redis, TTL strategies |
-| rust-auth | Authentication/Authorization | JWT, API Key |
-| rust-middleware | Middleware | CORS, rate limiting, logging |
-| rust-xacml | Policy engine | RBAC, permission decisions |
+| rust-unsafe      | Unsafe code                  | FFI, raw pointers            |
+| rust-performance | Performance optimization     | Benchmarks, SIMD             |
+| rust-web         | Web development              | axum, API design             |
+| rust-cache       | Caching management           | Redis, TTL strategies        |
+| rust-auth        | Authentication/Authorization | JWT, API Key                 |
+| rust-middleware  | Middleware                   | CORS, rate limiting, logging |
+| rust-xacml       | Policy engine                | RBAC, permission decisions   |
 
 ### Expert Skills (Specialized)
 
-| Skill | Description | Use Case |
+| Skill         | Description            | Use Case                 |
 |---------------|------------------------|--------------------------|
-| rust-ffi | Cross-language interop | C/C++ calls |
-| rust-embedded | Embedded development | no_std, WASM |
-| rust-ebpf | Kernel programming | eBPF, Linux kernel |
-| rust-gpu | GPU computing | CUDA, parallel computing |
+| rust-ffi      | Cross-language interop | C/C++ calls              |
+| rust-embedded | Embedded development   | no_std, WASM             |
+| rust-ebpf     | Kernel programming     | eBPF, Linux kernel       |
+| rust-gpu      | GPU computing          | CUDA, parallel computing |
 
 ---
 

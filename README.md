@@ -14,7 +14,8 @@
     a second pane.
 - restart, tell codex to continue; now it doesn't want to use python,- goes on
    to remove all "sorry" messages and continues translation until done.
-- clear context, add the original files, tell codes to compare & fix. seems to work
+- clear context, add the original files, tell codes to compare & fix. seems to
+  work
 
 - 1 pass of claude code 2.1.27
 - like before with codex tell it to compare the original and the translated
@@ -184,11 +185,11 @@ solutions for various Rust problems.
 rust-skill (main entry)
  │
  ├─► rust-ownership ──► rust-mutability ──► rust-concurrency ──► rust-async
- │ │ │ │
- │ └─► rust-unsafe ──────┘ │
- │ │ │
+ │ │                     │                     │
+ │ └─► rust-unsafe ──────┘                     │
+ │ │                                           │
  │ └─► rust-ffi ─────────────────────► rust-ebpf
- │ │ │
+ │ │                                           │
  │ └────────────────────────► rust-gpu
  │
  ├─► rust-error ──► rust-error-advanced ──► rust-anti-pattern

@@ -218,72 +218,72 @@ This skill includes 35 sub-skills for different Rust domains. Use specific trigg
 
 ### Core Skills (Daily Use)
 
-| Skill | Description | Triggers |
+| Skill                   | Description                  | Triggers                    |
 |-------------------------|------------------------------|-----------------------------|
-| **rust-skill** | Main Rust expert entry point | Rust, cargo, compile error |
-| **rust-ownership** | Ownership & lifetime | ownership, borrow, lifetime |
-| **rust-mutability** | Interior mutability | mut, Cell, RefCell, borrow |
-| **rust-concurrency** | Concurrency & async | thread, async, tokio |
-| **rust-error** | Error handling | Result, Error, panic |
-| **rust-error-advanced** | Advanced error handling | thiserror, anyhow, context |
-| **rust-coding** | Coding standards | style, naming, clippy |
+| rust-skill          | Main Rust expert entry point | Rust, cargo, compile error  |
+| rust-ownership      | Ownership & lifetime         | ownership, borrow, lifetime |
+| rust-mutability     | Interior mutability          | mut, Cell, RefCell, borrow  |
+| rust-concurrency    | Concurrency & async          | thread, async, tokio        |
+| rust-error          | Error handling               | Result, Error, panic        |
+| rust-error-advanced | Advanced error handling      | thiserror, anyhow, context  |
+| rust-coding         | Coding standards             | style, naming, clippy       |
 
 ### Advanced Skills (Deep Understanding)
 
-| Skill | Description | Triggers |
+| Skill                 | Description              | Triggers                              |
 |-----------------------|--------------------------|---------------------------------------|
-| **rust-unsafe** | Unsafe code & FFI | unsafe, FFI, raw pointer |
-| **rust-anti-pattern** | Anti-patterns | anti-pattern, clone, unwrap |
-| **rust-performance** | Performance optimization | performance, benchmark, false sharing |
-| **rust-web** | Web development | web, axum, HTTP, API |
-| **rust-learner** | Learning & ecosystem | version, new feature |
-| **rust-ecosystem** | Crate selection | crate, library, framework |
-| **rust-cache** | Redis caching | cache, redis, TTL |
-| **rust-auth** | JWT & API Key auth | auth, jwt, token, api-key |
-| **rust-middleware** | Middleware patterns | middleware, cors, rate-limit |
-| **rust-xacml** | Policy engine | xacml, policy, rbac, permission |
+| rust-unsafe       | Unsafe code & FFI        | unsafe, FFI, raw pointer              |
+| rust-anti-pattern | Anti-patterns            | anti-pattern, clone, unwrap           |
+| rust-performance  | Performance optimization | performance, benchmark, false sharing |
+| rust-web          | Web development          | web, axum, HTTP, API                  |
+| rust-learner      | Learning & ecosystem     | version, new feature                  |
+| rust-ecosystem    | Crate selection          | crate, library, framework             |
+| rust-cache        | Redis caching            | cache, redis, TTL                     |
+| rust-auth         | JWT & API Key auth       | auth, jwt, token, api-key             |
+| rust-middleware   | Middleware patterns      | middleware, cors, rate-limit          |
+| rust-xacml        | Policy engine            | xacml, policy, rbac, permission       |
 
 ### Expert Skills (Specialized)
 
-| Skill | Description | Triggers |
+| Skill                     | Description                  | Triggers                             |
 |---------------------------|------------------------------|--------------------------------------|
-| **rust-ffi** | Cross-language interop | FFI, C, C++, bindgen, C++ exception |
-| **rust-pin** | Pin & self-referential | Pin, Unpin, self-referential |
-| **rust-macro** | Macros & proc-macro | macro, derive, proc-macro |
-| **rust-async** | Async patterns | Stream, backpressure, select |
-| **rust-async-pattern** | Advanced async | tokio::spawn, plugin |
-| **rust-const** | Const generics | const, generics, compile-time |
-| **rust-embedded** | Embedded & no_std | no_std, embedded, ISR, WASM, RISC-V |
-| **rust-lifetime-complex** | Complex lifetimes | HRTB, GAT, 'static, dyn trait |
-| **rust-skill-index** | Skill index | Skill, index, skills list |
-| **rust-linear-type** | Linear types & resource mgmt | Destructible, RAII, linear semantics |
-| **rust-coroutine** | Coroutines & green threads | generator, suspend/resume, coroutine |
-| **rust-ebpf** | eBPF & kernel programming | eBPF, kernel module, map, tail call |
-| **rust-gpu** | GPU memory & computing | CUDA, GPU memory, compute shader |
+| rust-ffi              | Cross-language interop       | FFI, C, C++, bindgen, C++ exception  |
+| rust-pin              | Pin & self-referential       | Pin, Unpin, self-referential         |
+| rust-macro            | Macros & proc-macro          | macro, derive, proc-macro            |
+| rust-async            | Async patterns               | Stream, backpressure, select         |
+| rust-async-pattern    | Advanced async               | tokio::spawn, plugin                 |
+| rust-const            | Const generics               | const, generics, compile-time        |
+| rust-embedded         | Embedded & no_std            | no_std, embedded, ISR, WASM, RISC-V  |
+| rust-lifetime-complex | Complex lifetimes            | HRTB, GAT, 'static, dyn trait        |
+| rust-skill-index      | Skill index                  | Skill, index, skills list            |
+| rust-linear-type      | Linear types & resource mgmt | Destructible, RAII, linear semantics |
+| rust-coroutine        | Coroutines & green threads   | generator, suspend/resume, coroutine |
+| rust-ebpf             | eBPF & kernel programming    | eBPF, kernel module, map, tail call  |
+| rust-gpu              | GPU memory & computing       | CUDA, GPU memory, compute shader     |
 
 ### Problem-Based Lookup
 
-| Problem Type | Skills to Use |
+| Problem Type                        | Skills to Use                                    |
 |-------------------------------------|--------------------------------------------------|
-| Compile errors (ownership/lifetime) | rust-ownership, rust-lifetime-complex |
-| Borrow checker conflicts | rust-mutability |
-| Send/Sync issues | rust-concurrency |
-| Performance bottlenecks | rust-performance |
-| Async code issues | rust-concurrency, rust-async, rust-async-pattern |
-| Unsafe code review | rust-unsafe |
-| FFI & C++ interop | rust-ffi |
-| Embedded/no_std | rust-embedded |
-| eBPF kernel programming | rust-ebpf |
-| GPU computing | rust-gpu |
-| Advanced type system | rust-lifetime-complex, rust-macro, rust-const |
-| Coding standards | rust-coding |
-| Caching strategies | rust-cache |
-| Authentication/Authorization | rust-auth, rust-xacml |
-| Web middleware | rust-middleware, rust-web |
+| Compile errors (ownership/lifetime) | rust-ownership, rust-lifetime-complex            |
+| Borrow checker conflicts            | rust-mutability                                  |
+| Send/Sync issues                    | rust-concurrency                                 |
+| Performance bottlenecks             | rust-performance                                 |
+| Async code issues                   | rust-concurrency, rust-async, rust-async-pattern |
+| Unsafe code review                  | rust-unsafe                                      |
+| FFI & C++ interop                   | rust-ffi                                         |
+| Embedded/no_std                     | rust-embedded                                    |
+| eBPF kernel programming             | rust-ebpf                                        |
+| GPU computing                       | rust-gpu                                         |
+| Advanced type system                | rust-lifetime-complex, rust-macro, rust-const    |
+| Coding standards                    | rust-coding                                      |
+| Caching strategies                  | rust-cache                                       |
+| Authentication/Authorization        | rust-auth, rust-xacml                            |
+| Web middleware                      | rust-middleware, rust-web                        |
 
 ### Skill Collaboration
 
-```
+```text
 rust-skill (main entry)
  │
  ├─► rust-ownership ──► rust-mutability ──► rust-concurrency ──► rust-async
